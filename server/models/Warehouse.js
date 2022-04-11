@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const warehouseSchema = new mongoose.Schema(
   {
     owner: {
-      type: String,
+      type: mongoose.SchemaTypes.ObjectId,
       required: true,
     },
     name:{
@@ -19,6 +19,10 @@ const warehouseSchema = new mongoose.Schema(
       type:Array,
       default:[]
     },
+    airConditioner: {
+      type:Boolean,
+      default:false,
+    },
     totalUnits: {
       type: Number,
       default: 0,
@@ -31,10 +35,18 @@ const warehouseSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    address: {
-      type: String,
-      default: "",
+    locationTags: {
+      type: [String],
+      default: [],
     },
+    address:{
+      type:String,
+      required:[true,"Please add an address"],
+    },
+    image:{
+      data:Buffer,
+      contentType:String
+    }
   },
   { timestamps: true }
 );

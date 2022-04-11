@@ -18,7 +18,8 @@
     "helmet": "^5.0.2",
     "http-errors": "^2.0.0",
     "mongoose": "^6.2.3",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "node-geocoder": "^4.0.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.15"

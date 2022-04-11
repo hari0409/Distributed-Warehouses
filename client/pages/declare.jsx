@@ -1,0 +1,166 @@
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/router";
+import {
+  Flex,
+  Stack,
+  Heading,
+  Box,
+  Text,
+  FormControl,
+  Button,
+  FormLabel,
+  Input,
+  Textarea,
+  FormErrorMessage,
+  Checkbox,
+} from "@chakra-ui/react";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import axios from "axios";
+
+function Declare() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, seterrors] = useState(null);
+  const [loggedInUser, setLoggedInUser] = useState(null);
+  const router = useRouter();
+
+  const [name, setName] = useState("");
+  const [area, setArea] = useState(0.5);
+  const [address, setAddress] = useState("");
+  const [tags, setTags] = useState("");
+  const [cost, setcost] = useState(7000);
+  const [ac, setAc] = useState(false);
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user) {
+      setLoggedInUser(user);
+    } else {
+      router.replace("/login");
+    }
+  }, []);
+
+  const submitHandler = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(!isSubmitting);
+    let locationTags = tags.split(",");
+    const newTags = locationTags.map((e) => {
+      return e.toLowerCase().trim();
+    });
+    const data = {
+      owner: loggedInUser._id,
+      name: name,
+      totalUnits: area * 100,
+      cost: cost,
+      locationTags: newTags,
+      address: address,
+      availableUnits: area * 100,
+      airConditioner: ac,
+    };
+    await axios
+      .post(`http://localhost:5000/api/warehouse/create`, data)
+      .then((res) => {
+        router.replace("/dashboard");
+      })
+      .catch((e) => {
+        toast.error("Error Occured");
+        seterrors({ name: e.response.data.message });
+      });
+    setIsSubmitting(!isSubmitting);
+  };
+
+  return (
+    <>
+      <Flex minH={"100vh"} align={"center"} justify={"center"}>
+        <Stack spacing={8} mx={"auto"} maxW={"lg"} py={12} px={6}>
+          <Stack align={"center"}>
+            <Heading fontSize={"4xl"}>Declare your Land</Heading>
+            <Text fontSize={"lg"}>to be made as a Warehouse </Text>
+          </Stack>
+          <Box rounded={"lg"} boxShadow={"dark-lg"} p={8}>
+            <Stack spacing={4}>
+              <form onSubmit={submitHandler}>
+                <FormControl isInvalid={errors ? errors.name : null}>
+                  <FormLabel>Name your land</FormLabel>
+                  <Input
+                    type="text"
+                    value={name}
+                    onChange={(e) => {
+                      setName(e.target.value);
+                    }}
+                  />
+                  <FormLabel>Total Area(in acres)</FormLabel>
+                  <Input
+                    type="number"
+                    value={area}
+                    onChange={(e) => {
+                      setArea(e.target.value);
+                    }}
+                  />
+                  <FormLabel>Desired cost per ton (₹)</FormLabel>
+                  <Input
+                    type="number"
+                    value={cost}
+                    onChange={(e) => {
+                      setcost(e.target.value);
+                    }}
+                  />
+                  <Checkbox
+                    my={2}
+                    onChange={() => {
+                      setAc(!ac);
+                    }}
+                  >
+                    Air-Conditioned
+                  </Checkbox>
+                  <FormLabel>Address</FormLabel>
+                  <Textarea
+                    type="text"
+                    value={address}
+                    onChange={(e) => {
+                      setAddress(e.target.value);
+                    }}
+                  />
+                  <FormLabel>
+                    Tags(Describe your nearby locations) with ","
+                  </FormLabel>
+                  <Textarea
+                    resize="block"
+                    type="text"
+                    value={tags}
+                    onChange={(e) => {
+                      setTags(e.target.value);
+                    }}
+                  />
+                  
+                  <FormErrorMessage>
+                    {errors ? errors.name : null}
+                  </FormErrorMessage>
+                </FormControl>
+                <Stack spacing={10}>
+                  <Button
+                    bg={"blue.400"}
+                    color={"white"}
+                    _hover={{
+                      bg: "blue.500",
+                    }}
+                    style={{
+                      marginTop: "10px",
+                    }}
+                    isLoading={isSubmitting}
+                    type="submit"
+                  >
+                    Register
+                  </Button>
+                  <ToastContainer />
+                </Stack>
+              </form>
+            </Stack>
+          </Box>
+        </Stack>
+      </Flex>
+    </>
+  );
+}
+
+export default Declare;

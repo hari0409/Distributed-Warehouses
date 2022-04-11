@@ -9,7 +9,7 @@ router.post("/create", async (req, res, next) => {
     const warehouse = await new Warehouse(data);
     await warehouse.save();
     const user = await User.findById(data.owner);
-    await user.updateOne({ $push: { owned: user._id } });
+    await user.updateOne({ $push: { owned: warehouse._id } });
     res.status(200).json(warehouse);
   } catch (error) {
     next(error);
@@ -77,32 +77,48 @@ router.put("/kickout", async (rq, res, next) => {
 });
 
 //Delete Warehouse & update other users
-router.delete("/:id", async (req, res, next) => {
+router.post("/delete/:id", async (req, res, next) => {
   try {
-    const { ownerId } = req.body;
     const warehouse = await Warehouse.findById(req.params.id);
     if (warehouse) {
-      if (warehouse.owner == ownerId) {
-        const tenents = warehouse.rentees;
-        tenents.map(async (t) => {
-          const user = await User.findById(t.rid.toString());
-          await user.updateOne({ $pull: { rented: { lid: warehouse._id } } });
-          await user.updateOne({
-            $push: {
-              updateFlags: {
-                lid: warehouse._id,
-                msg: "You have been kicked out of the warehouse",
-              },
+      const tenents = warehouse.rentees;
+      const owner = await User.findById(warehouse.owner);
+      await User.updateOne(
+        {
+          _id: owner._id,
+        },
+        {
+          $pull: { owned: warehouse._id },
+        }
+      );
+      tenents.map(async (t) => {
+        const user = await User.findById(t.rid.toString());
+        await user.updateOne({ $pull: { rented: { lid: warehouse._id } } });
+        await user.updateOne({
+          $push: {
+            updateFlags: {
+              lid: warehouse._id,
+              msg: "You have been kicked out of the warehouse",
             },
-          });
+          },
         });
-        res.status(200).send("Will be deleted soon");
-      } else {
-        res.status(400).send("You are not authorized to delete this warehouse");
-      }
+      });
+      await Warehouse.deleteOne({ _id: warehouse._id });
+      res.status(200).send("Will be deleted soon");
     } else {
       res.status(404).send("No warehouse found");
     }
+  } catch (error) {
+    next(error);
+  }
+});
+
+//Get warehouse in a given location
+router.patch("/locations", async (req, res, next) => {
+  try {
+    const {locations} = req.body;
+    const ids = await Warehouse.find({ location: { $in: locations } });
+    res.status(200).json(ids);
   } catch (error) {
     next(error);
   }

@@ -56,7 +56,6 @@ router.put("/rent/:id", async (req, res, next) => {
           $set: {
             availableUnits: warehouse.totalUnits - required,
           },
-
         });
         res.status(200).send("Rented successfully");
       } else {
@@ -80,12 +79,13 @@ router.post("/login", async (req, res, next) => {
     if (user) {
       const match = bcrypt.compareSync(password, user.password);
       if (match) {
-        res.status(200).json({ status: "Logged In" });
+        const userLogged = await User.findById(user._id, { password: 0 });
+        res.status(200).json({ status: "Logged In", user: userLogged });
       } else {
         res.status(401).json({ message: "Invalid Credentials" });
       }
     } else {
-      res.status(400).send("User not found");
+      res.status(400).send({ message: "User not found" });
     }
   } catch (error) {
     next(error);
@@ -125,43 +125,42 @@ router.put("/exit", async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-})
+});
 
 //Remove only certain quantity
-router.put("/update",async(req,res,next)=>{
+router.put("/update", async (req, res, next) => {
   try {
-    const {userId,landId,required} = req.body;
+    const { userId, landId, required } = req.body;
     const user = await User.findById(userId);
     const warehouse = await Warehouse.findById(landId);
-    if(user.dueAmount == 0 && warehouse.availableUnits >= required){
-      const landObj = {lid:warehouse._id,quantity:required};
-      const renteesObj = {rid:user._id,quantity:required};
+    if (user.dueAmount == 0 && warehouse.availableUnits >= required) {
+      const landObj = { lid: warehouse._id, quantity: required };
+      const renteesObj = { rid: user._id, quantity: required };
       await user.updateOne({
-        $push:{
-          rented:landObj
+        $push: {
+          rented: landObj,
         },
-        $set:{
-          paid:false,
-          dueAmount:required*warehouse.cost
-        }
+        $set: {
+          paid: false,
+          dueAmount: required * warehouse.cost,
+        },
       });
       await warehouse.updateOne({
-        $push:{
-          rentees:renteesObj
+        $push: {
+          rentees: renteesObj,
         },
-        $set:{
-          availableUnits:warehouse.totalUnits-required
-        }
+        $set: {
+          availableUnits: warehouse.totalUnits - required,
+        },
       });
       res.status(200).send("Rented successfully");
-    }
-    else{
+    } else {
       res.status(401).send("Please pay previous Dues..");
     }
   } catch (error) {
     next(error);
   }
-})
+});
 
 //Update password of user
 router.put("/update/:id", async (req, res, next) => {
@@ -184,5 +183,18 @@ router.put("/update/:id", async (req, res, next) => {
     next(error);
   }
 });
+
+//Get leased Land & Warehouse:
+router.get("/getAll/:id", async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const user = await User.findById(id);
+    let landIds = user.owned;
+    res.status(200).json(landIds);
+  } catch (error) {
+    next(error);
+  }
+});
+
 
 module.exports = router;
