@@ -14,9 +14,11 @@
     "@emotion/styled": "^11.8.1",
     "axios": "^0.26.1",
     "framer-motion": "^6.2.9",
+    "mapbox-gl": "^2.8.1",
     "next": "12.1.4",
-    "react": "18.0.0",
-    "react-dom": "18.0.0",
+    "npm": "^8.6.0",
+    "react": "17.0.2",
+    "react-dom": "17.0.2",
     "react-icons": "^4.3.1",
     "react-toastify": "^8.2.0"
   },

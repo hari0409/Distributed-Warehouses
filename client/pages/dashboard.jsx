@@ -9,10 +9,12 @@ import {
   Text,
   HStack,
   Wrap,
+  VStack,
 } from "@chakra-ui/react";
 import axios from "axios";
 import Owned from "../Components/Owned/owned";
 import Info from "../Components/Info/Info";
+import Rented from "../Components/Rented/Rented";
 
 function DashBoard() {
   const [changed, setChanged] = useState(false);
@@ -23,18 +25,24 @@ function DashBoard() {
   const router = useRouter();
 
   const getLands = async () => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    let ownedIds = await axios.get(
-      `http://localhost:5000/api/users/getAll/${user._id}`
-    );
-    ownedIds = ownedIds.data;
-    let data = ownedIds.map(async (e) => {
-      return await axios.get(`http://localhost:5000/api/warehouse/${e}`);
-    });
-    let result = await Promise.all(data);
-    let resultData = result.map((e) => e.data);
-    setOwnedData(resultData);
-    setLength(resultData.length);
+    try {
+      const user = JSON.parse(localStorage.getItem("user"));
+      let ownedIds = await axios.get(
+        `${process.env.NEXT_PUBLIC_DB_LINK}/api/users/getAll/${user._id}`
+      );
+      ownedIds = ownedIds.data;
+      let data = ownedIds.map(async (e) => {
+        return await axios.get(
+          `${process.env.NEXT_PUBLIC_DB_LINK}/api/warehouse/${e}`
+        );
+      });
+      let result = await Promise.all(data);
+      let resultData = result.map((e) => e.data);
+      setOwnedData(resultData);
+      setLength(resultData.length);
+    } catch (error) {
+      alert("Server unavailable");
+    }
   };
 
   useEffect(() => {
@@ -54,10 +62,10 @@ function DashBoard() {
           <Heading>Dashboard</Heading>
         </Box>
       </Center>
-      <Flex justifyContent="start" marginLeft="10px">
+      <Box marginLeft="10px">
         <Box>
-          <Info loggedInUser={loggedInUser}/>
-          <Text fontSize="2xl">Your leased Lands & Warehouses:</Text>
+          <Info loggedInUser={loggedInUser} />
+          <Text fontSize="4xl">Your leased Lands & Warehouses:</Text>
           <Spacer my={2} />
           <HStack>
             <Owned
@@ -67,8 +75,12 @@ function DashBoard() {
               length={length}
             />
           </HStack>
+          <Text fontSize="4xl">Your Rented Spaces</Text>
+          <Box>
+            <Rented uid={loggedInUser?._id} />
+          </Box>
         </Box>
-      </Flex>
+      </Box>
     </>
   );
 }

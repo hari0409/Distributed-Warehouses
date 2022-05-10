@@ -3,7 +3,7 @@ const User = require("../models/User");
 const Warehouse = require("../models/Warehouse");
 const bcrypt = require("bcrypt");
 
-// Create User
+// Create User-->Done
 router.post("/create", async (req, res, next) => {
   try {
     const data = req.body;
@@ -19,11 +19,21 @@ router.post("/create", async (req, res, next) => {
   }
 });
 
-// Get User
+// Get User-->Done
 router.get("/:id", async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id);
     res.status(200).json(user);
+  } catch (error) {
+    next(error);
+  }
+});
+
+//Get Name alone for certain pages-->Done
+router.get("/getname/:id", async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+    res.status(200).json(user.name);
   } catch (error) {
     next(error);
   }
@@ -37,29 +47,44 @@ router.put("/rent/:id", async (req, res, next) => {
       const { landId, userId, required } = req.body;
       const user = await User.findById(userId);
       const warehouse = await Warehouse.findById(landId);
-      if (user.dueAmount == 0 && warehouse.availableUnits >= required) {
-        const landObj = { lid: warehouse._id, quantity: required };
-        const renteesObj = { rid: user._id, quantity: required };
-        await user.updateOne({
-          $push: {
-            rented: landObj,
+      if (warehouse.availableUnits >= required && required > 0) {
+        const cid=+new Date();
+        const landObj = {
+          lid: warehouse._id,
+          quantity: required,
+          name: warehouse.name,
+          cid:cid,
+        };
+        await user.updateOne(
+          {
+            $push: {
+              rented: landObj,
+            },
+            $set: {
+              paid: false,
+              dueAmount: required * warehouse.cost + user.dueAmount,
+            },
           },
-          $set: {
-            paid: false,
-            dueAmount: required * warehouse.cost,
-          },
-        });
+          {
+            new: true,
+          }
+        );
+        const renteesObj = {
+          rid: user._id,
+          cid:cid,
+          quantity: required,
+        };
         await warehouse.updateOne({
           $push: {
             rentees: renteesObj,
           },
           $set: {
-            availableUnits: warehouse.totalUnits - required,
+            availableUnits: warehouse.availableUnits - required,
           },
         });
         res.status(200).send("Rented successfully");
       } else {
-        res.status(401).send("Please pay previous Dues..");
+        res.status(401).send("Quantity Unavailable Or Quantity is 0");
       }
     } else {
       res.status(401).send("Access Denied");
@@ -69,10 +94,11 @@ router.put("/rent/:id", async (req, res, next) => {
   }
 });
 
-//Login in User
+//Login in User-->Done
 router.post("/login", async (req, res, next) => {
   try {
     const { email, password } = req.body;
+    console.log(req.body);
     const user = await User.findOne({
       email: email,
     });
@@ -95,33 +121,28 @@ router.post("/login", async (req, res, next) => {
 //Exit warehouse completely
 router.put("/exit", async (req, res, next) => {
   try {
-    const { userId, landId } = req.body;
+    const { userId, landId, quan,cid } = req.body;
     const user = await User.findById(userId);
+    console.log(cid)
     const warehouse = await Warehouse.findById(landId);
-    if (user.dueAmount == 0) {
-      const landObj = { lid: warehouse._id, quantity: warehouse.totalUnits };
-      const renteesObj = { rid: user._id, quantity: warehouse.totalUnits };
-      await user.updateOne({
-        $push: {
-          rented: landObj,
+    await user.updateOne({
+      $pull: {
+        rented: {
+          cid: cid,
         },
-        $set: {
-          paid: false,
-          dueAmount: warehouse.totalUnits * warehouse.cost,
+      },
+    });
+    await warehouse.updateOne({
+      $pull: {
+        rentees: {
+          cid:cid,
         },
-      });
-      await warehouse.updateOne({
-        $push: {
-          rentees: renteesObj,
-        },
-        $set: {
-          availableUnits: 0,
-        },
-      });
-      res.status(200).send("Rented successfully");
-    } else {
-      res.status(401).send("Please pay previous Dues..");
-    }
+      },
+      $set: {
+        availableUnits: warehouse.availableUnits + quan,
+      },
+    });
+    res.status(200).send("You have successfully exited the warehouse");
   } catch (error) {
     next(error);
   }
@@ -155,7 +176,7 @@ router.put("/update", async (req, res, next) => {
       });
       res.status(200).send("Rented successfully");
     } else {
-      res.status(401).send("Please pay previous Dues..");
+      res.status(401).send("Error with the quantity");
     }
   } catch (error) {
     next(error);
@@ -184,7 +205,7 @@ router.put("/update/:id", async (req, res, next) => {
   }
 });
 
-//Get leased Land & Warehouse:
+//Get leased Land & Warehouse:-->Done
 router.get("/getAll/:id", async (req, res, next) => {
   try {
     const id = req.params.id;
@@ -196,5 +217,15 @@ router.get("/getAll/:id", async (req, res, next) => {
   }
 });
 
+router.get("/getRented/:id", async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const user = await User.findById(id);
+    let landIds = user.rented;
+    res.status(200).json(landIds);
+  } catch (error) {
+    next(error);
+  }
+});
 
 module.exports = router;

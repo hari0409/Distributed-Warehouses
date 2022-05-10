@@ -1,18 +1,34 @@
-import { Flex } from "@chakra-ui/react";
+  import { Flex, Spacer } from "@chakra-ui/react";
 import axios from "axios";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
+import Simple from "../../Components/Simple/Simple";
 
 function RentIt() {
   const router = useRouter();
-  const [prodId, setProdId] = useState("");
   const [prodDetails, setProdDetails] = useState(null);
+  const [imgLink, setImgLink] = useState("");
 
   const getDetails = async (rentId) => {
-    const res = await axios
-      .get(`http://localhost:5000/api/warehouse/${rentId}`)
-      .catch((err) => console.log(err));
-    setProdDetails(res.data);
+    try {
+      await axios
+        .get(`${process.env.NEXT_PUBLIC_DB_LINK}/api/warehouse/${rentId}`)
+        .then((res) => {
+          console.log(res.data);
+          setProdDetails(res.data);
+        })
+        .catch((err) => console.log(err));
+      await axios
+        .get(`${process.env.NEXT_PUBLIC_DB_LINK}/api/map/${rentId}`)
+        .then(async (res) => {
+          setImgLink(
+            `${process.env.NEXT_PUBLIC_DB_LINK}/api/images/${res.data.fileId}`
+          );
+        })
+        .catch((err) => alert(err));
+    } catch (error) {
+      alert(error);
+    }
   };
 
   useEffect(() => {
@@ -21,18 +37,16 @@ function RentIt() {
       const userData = JSON.parse(user);
       const { rentId } = router.query;
       if (userData) {
-        setProdId(rentId);
         getDetails(rentId);
+      } else {
+        router.replace("/login");
       }
     }
   }, [router.isReady]);
 
   return (
     <Flex>
-      <h1>RentIt</h1>
-      {
-        prodDetails?.name
-      }
+      <Simple prod={prodDetails} imgLink={imgLink} />
     </Flex>
   );
 }

@@ -29,7 +29,7 @@ function Login() {
       password: password,
     };
     await axios
-      .post(`http://localhost:5000/api/users/login`, body)
+      .post(`${process.env.NEXT_PUBLIC_DB_LINK}/api/users/login`, body)
       .then((res) => {
         localStorage.setItem("user", JSON.stringify(res.data.user));
         router.push("/dashboard");
@@ -47,6 +47,8 @@ function Login() {
       const user = JSON.parse(localStorage.getItem("user"));
       if (user) {
         router.push("/dashboard");
+      } else {
+        router.replace("/login");
       }
     }
   }, [router.isReady]);

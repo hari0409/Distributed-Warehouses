@@ -30,7 +30,7 @@ function SignUp() {
       password: password,
     };
     await axios
-      .post(`http://localhost:5000/api/users/create`, body)
+      .post(`${process.env.NEXT_PUBLIC_DB_LINK}/api/users/create`, body)
       .then(router.push("/dashboard"))
       .catch((err) => {
         seterrors({ name: err.response.data.message });
@@ -39,7 +39,7 @@ function SignUp() {
   };
 
   useEffect(() => {
-    if (localStorage.getItem("user")) {
+    if (JSON.parse(localStorage.getItem("user"))) {
       router.push("/dashboard");
     }
   }, []);

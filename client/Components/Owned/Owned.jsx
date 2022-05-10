@@ -1,4 +1,4 @@
-import { Text, Wrap, WrapItem } from "@chakra-ui/react";
+import { Center, Text, Wrap, WrapItem } from "@chakra-ui/react";
 import React from "react";
 import WarehouseElement from "../WarehouseElement/WarehouseElement";
 
@@ -8,7 +8,7 @@ function Owned({ ownedData, changed, setChanged, length }) {
       <Wrap>
         {length != 0 ? (
           <>
-            {ownedData.map((e) => {
+            {ownedData.map((e, index) => {
               return (
                 <>
                   <WrapItem>
@@ -17,6 +17,7 @@ function Owned({ ownedData, changed, setChanged, length }) {
                       status="owned"
                       changed={changed}
                       setChanged={setChanged}
+                      key={index}
                     />
                   </WrapItem>
                 </>
@@ -25,7 +26,9 @@ function Owned({ ownedData, changed, setChanged, length }) {
           </>
         ) : (
           <>
-            <Text>No Land Or Warehouse</Text>
+            <Text fontSize={"xl"} fontWeight="bold" color="#FEB139">
+              <Center>NO LAND OR WAREHOUSES</Center>
+            </Text>
           </>
         )}
       </Wrap>

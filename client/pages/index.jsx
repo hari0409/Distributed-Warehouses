@@ -5,11 +5,13 @@ import { useEffect } from "react";
 
 export default function Home() {
   const router = useRouter();
-  
+
   useEffect(() => {
     const user = localStorage.getItem("user");
     if (user) {
       router.replace("/dashboard");
+    } else {
+      router.replace("/login");
     }
   }, []);
 
@@ -17,9 +19,12 @@ export default function Home() {
     <div className={styles.container}>
       <Head>
         <title>WaRent</title>
-        <meta name="description" content="Globally Distributed Shared warehouse" />
+        <meta
+          name="description"
+          content="Globally Distributed Shared warehouse"
+        />
         <link rel="icon" href="/logo.ico" />
-      </Head>  
+      </Head>
     </div>
   );
 }

@@ -21,35 +21,32 @@ function Recomended() {
     };
     await axios
       .request(options)
-      .then(function (response) {
-        let data = [];
-        for (let i = 0; i < response.data.length; i++) {
-          data.push(response.data[i].City.toLowerCase());
+      .then(async (response) => {
+        if (response.data) {
+          let data = [];
+          for (let i = 0; i < response.data.length; i++) {
+            data.push(response.data[i].City.toLowerCase());
+          }
+          const locArray = {
+            locations: data,
+          };
+          console.log(locArray.locations);
+          await axios
+            .patch(`${process.env.NEXT_PUBLIC_DB_LINK}/api/warehouse/locations`, locArray.locations)
+            .then((res) => {
+              console.log(res.data);
+              setLocationData(res.data);
+            });
         }
-        return data;
       })
       .catch(function (error) {
         console.error(error);
       });
   };
-
-  const getLocationData = async (location) => {
-    const data = {
-      locations: location,
-    };
-    const res = await axios.patch(
-      "http://localhost:5000/api/warehouse/locations",
-      data
-    );
-    setLocationData(res.data);
-  };
-
   useEffect(() => {
     if (location.loaded && location.coordinates) {
       const { lat, lng } = location.coordinates;
-      let data = getLocations(lat, lng);
-      setLError(true);
-      getLocationData(data);
+      getLocations(lat, lng);
     } else {
       setLError(true);
     }
@@ -61,22 +58,19 @@ function Recomended() {
           <Text fontSize="2xl">Recomended</Text>
           <Spacer my={2} />
           <HStack>
-            {/* {lError ? (
-              <Text>Enable Location for Recomendation</Text>
-            ) : } */}
-            {
-              locationData ? (
-                locationData.map((e) => {
+            {locationData ? (
+              <>
+                {locationData.map((e) => {
                   return (
                     <>
-                      <WarehouseElement e={e} status="recomended" key={e._id}/>
+                      <WarehouseElement e={e} status="recomended" key={e._id} />
                     </>
                   );
-                })
-              ) : (
-                <Text>No Land Or Warehouse</Text>
-              )
-            }
+                })}
+              </>
+            ) : (
+              <Text>No Land Or Warehouse</Text>
+            )}
           </HStack>
         </Box>
       </Flex>

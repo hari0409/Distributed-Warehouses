@@ -6,29 +6,45 @@ import WarehouseElement from "../Components/WarehouseElement/WarehouseElement";
 
 function SearchResult() {
   const router = useRouter();
-  const [search, setSearch] = useState(null);
-  const [results, setResults] = useState(null);
+  const [search, setSearch] = useState("");
+  const [results, setResults] = useState("");
 
   const getResult = async () => {
-    const data = {
-      "locations:": [search],
-    };
-    const res = await axios.patch(
-      "http://localhost:5000/api/warehouse/locations",
-      data
-    );
-    setResults(res.data);
+    try {
+      const val = router.query.searchQuery;
+      setSearch(val);
+      const data = {
+        locations: [val],
+      };
+      console.log(data);
+      await axios
+        .patch(
+          `${process.env.NEXT_PUBLIC_DB_LINK}/api/warehouse/locations`,
+          data
+        )
+        .then((res) => {
+          console.log(res.data);
+          setResults(res.data);
+        })
+        .catch((e) => {
+          alert(e);
+        });
+    } catch (error) {
+      alert(error);
+    }
   };
   useEffect(() => {
-    const searchQuery = router.query.searchQuery;
-    setSearch(searchQuery);
-    getResult();
-  }, []);
+    if (router.isReady) {
+      getResult();
+    }
+  }, [router.isReady]);
   return (
     <>
       <Flex justifyContent="start" marginLeft="10px">
         <Box>
-          <Text fontSize="2xl" m={5}>Search Result for {search}</Text>
+          <Text fontSize="2xl" m={5}>
+            Search Result for {search}
+          </Text>
           <Spacer my={2} />
           <HStack m={5}>
             {results ? (
@@ -41,7 +57,7 @@ function SearchResult() {
               })
             ) : (
               <Text>No Land Or Warehouse</Text>
-            )}  
+            )}
           </HStack>
         </Box>
       </Flex>

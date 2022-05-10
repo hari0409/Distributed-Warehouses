@@ -1,27 +1,33 @@
 const mongoose = require("mongoose");
+
+const RenteeSchema = new mongoose.Schema({
+  rid: {
+    type: mongoose.Schema.Types.ObjectId,
+  },
+  quantity: {
+    type: Number,
+  },
+  cid:{
+    type:Number,
+  }
+});
+
 const warehouseSchema = new mongoose.Schema(
   {
     owner: {
       type: mongoose.SchemaTypes.ObjectId,
       required: true,
     },
-    name:{
-      type:String,
-      required:true,
+    name: {
+      type: String,
+      required: true,
     },
     rentees: {
-      rid: {
-        type: String,
-      },
-      quantity: {
-        type: Number,
-      },
-      type:Array,
-      default:[]
+      type: [RenteeSchema],
     },
     airConditioner: {
-      type:Boolean,
-      default:false,
+      type: Boolean,
+      default: false,
     },
     totalUnits: {
       type: Number,
@@ -29,7 +35,7 @@ const warehouseSchema = new mongoose.Schema(
     },
     availableUnits: {
       type: Number,
-      default:0,
+      default: 0,
     },
     cost: {
       type: Number,
@@ -39,15 +45,19 @@ const warehouseSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
-    address:{
-      type:String,
-      required:[true,"Please add an address"],
+    address: {
+      type: String,
+      required: [true, "Please add an address"],
     },
-    image:{
-      data:Buffer,
-      contentType:String
-    }
+    desc: {
+      type: String,
+      default: null,
+    },
+    file: {
+      type: String,
+      default: "",
+    },
   },
   { timestamps: true }
 );
-module.exports=mongoose.model("Warehouse",warehouseSchema);
+module.exports = mongoose.model("Warehouse", warehouseSchema);

@@ -38,9 +38,11 @@ function WarehouseElement({ e, status, changed, setChanged }) {
             <Text as="h2" fontWeight="normal" mt={2}>
               Cost per Ton: ₹{e.cost}
             </Text>
-            <Text as="h2" fontWeight="normal" mt={2}>
-              Revenue: ₹{e.cost * (e.totalUnits - e.availableUnits)}
-            </Text>
+            {status === "owned" ? (
+              <Text as="h2" fontWeight="normal" mt={2}>
+                Revenue: ₹{e.cost * (e.totalUnits - e.availableUnits)}
+              </Text>
+            ) : null}
             <Text fontWeight="light">Address: {e.address}</Text>
             <Text fontWeight="light">Product Id: {e._id}</Text>
           </Stack>
@@ -49,14 +51,25 @@ function WarehouseElement({ e, status, changed, setChanged }) {
               <Flex my={2} justifyContent="center">
                 <Button
                   bg={"#9FB4FF"}
-                  mx="2"
+                  m="2"
                   onClick={() => {
                     router.push(`/edit/${e._id}`);
                   }}
                 >
                   Edit
                 </Button>
-                <Button onClick={onOpen} bg="red">
+                <Button
+                  bg={"#E15FED"}
+                  m="2"
+                  onClick={() => {
+                    router.push({
+                      pathname: `/statistics/${e._id}`
+                    });
+                  }}
+                >
+                  Stats
+                </Button>
+                <Button onClick={onOpen} bg="red" m="2">
                   Delete
                 </Button>
                 <Modal isOpen={isOpen} onClose={onClose}>
@@ -74,11 +87,16 @@ function WarehouseElement({ e, status, changed, setChanged }) {
                       <Button
                         bg={"red"}
                         onClick={async () => {
-                          await axios.post(
-                            `http://localhost:5000/api/warehouse/delete/${e._id}`
-                          );
-                          setChanged(!changed);
-                          onClose();
+                          try {
+                            await axios.post(
+                              `${process.env.NEXT_PUBLIC_DB_LINK}/api/warehouse/delete/${e._id}`
+                            );
+                            setChanged(!changed);
+                            router.reload()
+                            onClose();
+                          } catch (error) {
+                            alert(error);
+                          }
                         }}
                       >
                         Delete

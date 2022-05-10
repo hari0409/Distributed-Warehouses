@@ -1,9 +1,25 @@
 const mongoose = require("mongoose");
+
+const RentedSchema = new mongoose.Schema({
+  lid: {
+    type: mongoose.Schema.Types.ObjectId,
+  },
+  quantity: {
+    type: Number,
+  },
+  name: {
+    type: String,
+  },
+  cid:{
+    type:String,
+  }
+});
+
 const UserSchema = new mongoose.Schema(
   {
-    name:{
-      type:String,
-      required:true,
+    name: {
+      type: String,
+      required: true,
     },
     email: {
       type: String,
@@ -24,13 +40,7 @@ const UserSchema = new mongoose.Schema(
       default: [],
     },
     rented: {
-      lid: {
-        type: String,
-      },
-      quantity: {
-        type: Number,
-      },
-      type:Array
+      type: [RentedSchema],
     },
     balance: {
       type: Number,
@@ -44,13 +54,13 @@ const UserSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
-    updateFlags:{
-      type:Array,
-      default:[],
-      lid:{
-        type:mongoose.SchemaTypes.ObjectId,
-      }
-    }
+    updateFlags: {
+      type: Array,
+      default: [],
+      lid: {
+        type: mongoose.SchemaTypes.ObjectId,
+      },
+    },
   },
   {
     timestamps: true,

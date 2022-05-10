@@ -21,7 +21,7 @@ function Navbar() {
     if (user) {
       setUserlogged(user);
     }
-  }, [userlogged]);
+  }, []);
   const router = useRouter();
   const submitLogout = () => {
     setUserlogged(null);

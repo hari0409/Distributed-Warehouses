@@ -23,6 +23,7 @@ function Declare() {
   const [errors, seterrors] = useState(null);
   const [loggedInUser, setLoggedInUser] = useState(null);
   const router = useRouter();
+  const [wDetails, setWDetails] = useState(null);
 
   const [name, setName] = useState("");
   const [area, setArea] = useState(0.5);
@@ -30,6 +31,8 @@ function Declare() {
   const [tags, setTags] = useState("");
   const [cost, setcost] = useState(7000);
   const [ac, setAc] = useState(false);
+  const [img, setImg] = useState("");
+  const [desc, setDesc] = useState("");
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
@@ -41,32 +44,65 @@ function Declare() {
   }, []);
 
   const submitHandler = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(!isSubmitting);
-    let locationTags = tags.split(",");
-    const newTags = locationTags.map((e) => {
-      return e.toLowerCase().trim();
-    });
-    const data = {
-      owner: loggedInUser._id,
-      name: name,
-      totalUnits: area * 100,
-      cost: cost,
-      locationTags: newTags,
-      address: address,
-      availableUnits: area * 100,
-      airConditioner: ac,
-    };
-    await axios
-      .post(`http://localhost:5000/api/warehouse/create`, data)
-      .then((res) => {
-        router.replace("/dashboard");
-      })
-      .catch((e) => {
-        toast.error("Error Occured");
-        seterrors({ name: e.response.data.message });
+    try {
+      e.preventDefault();
+      setIsSubmitting(!isSubmitting);
+      let locationTags = tags.split(",");
+      const newTags = locationTags.map((e) => {
+        return e.toLowerCase().trim();
       });
-    setIsSubmitting(!isSubmitting);
+      let mapper = {
+        fileId: null,
+        warehouseId: null,
+      };
+      const imgForm = new FormData();
+      imgForm.append("file", img);
+      await axios
+        .post(`${process.env.NEXT_PUBLIC_DB_LINK}/api/images/upload`, imgForm)
+        .then((res) => {
+          mapper.fileId = res.data.file.id;
+        })
+        .catch((e) => {
+          alert(e);
+        });
+      const data = {
+        owner: loggedInUser._id,
+        name: name,
+        totalUnits: area * 100,
+        cost: cost,
+        locationTags: newTags,
+        address: address,
+        availableUnits: area * 100,
+        airConditioner: ac,
+        desc:desc
+      };
+      await axios
+        .post(`${process.env.NEXT_PUBLIC_DB_LINK}/api/warehouse/create`, data)
+        .then((res) => {
+          mapper.warehouseId = res.data._id;
+        })
+        .catch((e) => {
+          toast.error("Error Occured");
+          seterrors({ name: e.response.data.message });
+        });
+      await axios
+        .post(`${process.env.NEXT_PUBLIC_DB_LINK}/api/map/upload`, mapper)
+        .then((res) => {
+          router.push("/dashboard");
+        })
+        .catch((e) => {
+          alert(e);
+        });
+      setIsSubmitting(false);
+    } catch (error) {
+      alert(error);
+      setIsSubmitting(false);
+    }
+  };
+
+  const onImageUpload = async (e) => {
+    e.preventDefault();
+    setImg(e.target.files[0]);
   };
 
   return (
@@ -79,7 +115,7 @@ function Declare() {
           </Stack>
           <Box rounded={"lg"} boxShadow={"dark-lg"} p={8}>
             <Stack spacing={4}>
-              <form onSubmit={submitHandler}>
+              <form onSubmit={submitHandler} encType="multipart/form-data">
                 <FormControl isInvalid={errors ? errors.name : null}>
                   <FormLabel>Name your land</FormLabel>
                   <Input
@@ -132,7 +168,26 @@ function Declare() {
                       setTags(e.target.value);
                     }}
                   />
-                  
+                  <FormLabel>
+                    Describe your land
+                  </FormLabel>
+                  <Textarea
+                    resize="block"
+                    type="text"
+                    value={desc}
+                    onChange={(e) => {
+                      setDesc(e.target.value);
+                    }}
+                  />
+                  <Flex m={4}>
+                    <input
+                      type="file"
+                      onChange={(e) => {
+                        onImageUpload(e);
+                      }}
+                      name="file"
+                    />
+                  </Flex>
                   <FormErrorMessage>
                     {errors ? errors.name : null}
                   </FormErrorMessage>
