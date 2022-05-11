@@ -10,9 +10,18 @@ const RentedSchema = new mongoose.Schema({
   name: {
     type: String,
   },
-  cid:{
-    type:String,
-  }
+  cid: {
+    type: String,
+  },
+});
+
+const ActivitySchema = new mongoose.Schema({
+  lid: {
+    type: String,
+  },
+  msg: {
+    type: String,
+  },
 });
 
 const UserSchema = new mongoose.Schema(
@@ -27,8 +36,7 @@ const UserSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
-      min: 3,
+      default: null,
       max: 20,
     },
     isAdmin: {
@@ -55,12 +63,16 @@ const UserSchema = new mongoose.Schema(
       default: true,
     },
     updateFlags: {
-      type: Array,
-      default: [],
-      lid: {
-        type: mongoose.SchemaTypes.ObjectId,
-      },
+      type: [ActivitySchema],
     },
+    verified: {
+      type: Boolean,
+      default: false,
+    },
+    token:{
+      type: String,
+      required: true,
+    }
   },
   {
     timestamps: true,

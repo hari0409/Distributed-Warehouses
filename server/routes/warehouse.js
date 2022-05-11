@@ -2,24 +2,27 @@ const router = require("express").Router();
 const Warehouse = require("../models/Warehouse");
 const User = require("../models/User");
 const ImageMap = require("../models/ImageMap");
+const sendEmail = require("../lib/email");
 
 //Create Warehouse-->Done
-router.post(
-  "/create",
-  async (req, res, next) => {
-    try {
-      const data = req.body;
-      console.log(data);
-      const warehouse = await new Warehouse(data);
-      await warehouse.save();
-      const user = await User.findById(data.owner);
-      await user.updateOne({ $push: { owned: warehouse._id } });
-      res.status(200).json(warehouse);
-    } catch (error) {
-      next(error);
-    }
+router.post("/create", async (req, res, next) => {
+  try {
+    const data = req.body;
+    console.log(data);
+    const warehouse = await new Warehouse(data);
+    await warehouse.save();
+    const user = await User.findById(data.owner);
+    await user.updateOne({ $push: { owned: warehouse._id } });
+    sendEmail(
+      user.email,
+      `Your warehouse has been created in the name of ${warehouse.name} with a cost of ${warehouse.cost}`,
+      "Warehouse Rented"
+    );
+    res.status(200).json(warehouse);
+  } catch (error) {
+    next(error);
   }
-);
+});
 
 //Get Warehouse-->Done
 router.get("/:id", async (req, res, next) => {
@@ -32,34 +35,35 @@ router.get("/:id", async (req, res, next) => {
 });
 
 // Update Warehouse-->Done
-router.put(
-  "/update/:id",
-  async (req, res, next) => {
-    try {
-      const { ownerId, ...others } = req.body;
-      const warehouse = await Warehouse.findById(req.params.id);
-      if (warehouse) {
-        if (warehouse.owner == ownerId) {
-          await warehouse.updateOne(others);
-          res.status(200).send("Updated successfully");
-        } else {
-          res
-            .status(400)
-            .send("You are not authorized to update this warehouse");
-        }
+router.put("/update/:id", async (req, res, next) => {
+  try {
+    const { ownerId, ...others } = req.body;
+    const warehouse = await Warehouse.findById(req.params.id);
+    const email = await User.findById(ownerId, { email: 1 });
+    if (warehouse) {
+      if (warehouse.owner == ownerId) {
+        await warehouse.updateOne(others);
+        res.status(200).send("Updated successfully");
+        sendEmail(
+          email,
+          `Your warehouse has been updated in the name of ${warehouse.name} with a cost of ${warehouse.cost}`,
+          "Warehouse Updated"
+        );
       } else {
-        res.status(404).send("No warehouse found");
+        res.status(400).send("You are not authorized to update this warehouse");
       }
-    } catch (error) {
-      next(error);
+    } else {
+      res.status(404).send("No warehouse found");
     }
+  } catch (error) {
+    next(error);
   }
-);
+});
 
 //Kickout renter-->Done
 router.put("/kickout", async (rq, res, next) => {
   try {
-    const { warehouseId, renterId, quantity,cid } = rq.body;
+    const { warehouseId, renterId, quantity, cid } = rq.body;
     console.log(cid);
     const warehouse = await Warehouse.findById(warehouseId);
     if (warehouse) {
@@ -70,15 +74,20 @@ router.put("/kickout", async (rq, res, next) => {
       });
       await warehouse.updateOne({ $pull: { rentees: { cid: cid } } });
       const user = await User.findById(renterId);
-      await user.updateOne({ $pull: { rented: { cid:cid } } });
+      await user.updateOne({ $pull: { rented: { cid: cid } } });
       await user.updateOne({
         $push: {
           updateFlags: {
-            lid: warehouse._id,
+            lid: warehouse.name,
             msg: "You have been kicked out of the warehouse",
           },
         },
       });
+      sendEmail(
+        user.email,
+        `You have been kicked out of the ${warehouse.name}`,
+        "You have been kicked out-Warerent"
+      );
       res.status(200).send("Kicked out successfully");
     } else {
       res.status(404).send("No warehouse found");
@@ -112,11 +121,16 @@ router.post("/delete/:id", async (req, res, next) => {
         await user.updateOne({
           $push: {
             updateFlags: {
-              lid: warehouse._id,
+              lid: warehouse.name,
               msg: "You have been kicked out of the warehouse",
             },
           },
         });
+        sendEmail(
+          user.email,
+          `You have been kicked out of the ${warehouse.name} because the warehouse has been deleted from existance`,
+          "You have been kicked out-Warerent"
+        );
       });
       await Warehouse.deleteOne({ _id: warehouse._id });
       res.status(200).send("Will be deleted soon");
@@ -132,7 +146,7 @@ router.post("/delete/:id", async (req, res, next) => {
 //Get warehouse in a given location-->Done
 router.patch("/locations", async (req, res, next) => {
   try {
-    const locations = req.body;
+    const locations = req.body.locations;
     console.log(locations);
     const ids = await Warehouse.find({ locationTags: { $in: locations } });
     res.status(200).json(ids);
