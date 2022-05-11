@@ -3,13 +3,6 @@ import {
   Box,
   Button,
   Flex,
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
   Stack,
   Text,
   useDisclosure,
@@ -69,41 +62,6 @@ function WarehouseElement({ e, status, changed, setChanged }) {
                 >
                   Stats
                 </Button>
-                <Button onClick={onOpen} bg="red" m="2">
-                  Delete
-                </Button>
-                <Modal isOpen={isOpen} onClose={onClose}>
-                  <ModalOverlay />
-                  <ModalContent>
-                    <ModalHeader>Confirm Deletion:</ModalHeader>
-                    <ModalCloseButton />
-                    <ModalBody>
-                      Are you sure you want to delete this registration?
-                    </ModalBody>
-                    <ModalFooter>
-                      <Button colorScheme="blue" mr={3} onClick={onClose}>
-                        Close
-                      </Button>
-                      <Button
-                        bg={"red"}
-                        onClick={async () => {
-                          try {
-                            await axios.post(
-                              `${process.env.NEXT_PUBLIC_DB_LINK}/api/warehouse/delete/${e._id}`
-                            );
-                            setChanged(!changed);
-                            router.reload()
-                            onClose();
-                          } catch (error) {
-                            alert(error);
-                          }
-                        }}
-                      >
-                        Delete
-                      </Button>
-                    </ModalFooter>
-                  </ModalContent>
-                </Modal>
               </Flex>
             </>
           ) : (

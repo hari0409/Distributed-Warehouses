@@ -1,11 +1,5 @@
 import {
   Button,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
   Table,
   TableContainer,
   Tbody,
@@ -70,7 +64,7 @@ function Rented({ uid }) {
   };
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
+    const user = localStorage.getItem("user");
     if (user) {
       if (uid) {
         getRented();
@@ -102,32 +96,11 @@ function Rented({ uid }) {
                     <Td>{r?.name}</Td>
                     <Td>{r?.quantity}</Td>
                     <Td>
-                      <Button bg="red" onClick={onOpen}>
+                      <Button bg="red" onClick={(e)=>{
+                        exitWare(e,r);
+                      }}>
                         Exit
                       </Button>
-                      <Modal isOpen={isOpen} onClose={onClose}>
-                        <ModalOverlay />
-                        <ModalContent>
-                          <ModalHeader>Exit Warehouse:</ModalHeader>
-                          <ModalBody>
-                            Are you sure you want to exit from this warehouse
-                            completely?
-                          </ModalBody>
-                          <ModalFooter>
-                            <Button colorScheme="blue" mr={3} onClick={onClose}>
-                              Close
-                            </Button>
-                            <Button
-                              bg={"red"}
-                              onClick={(e) => {
-                                exitWare(e, r);
-                              }}
-                            >
-                              Remove
-                            </Button>
-                          </ModalFooter>
-                        </ModalContent>
-                      </Modal>
                     </Td>
                   </Tr>
                 );

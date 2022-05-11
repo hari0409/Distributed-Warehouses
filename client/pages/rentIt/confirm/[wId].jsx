@@ -10,6 +10,8 @@ import {
   Link,
   Text,
 } from "@chakra-ui/react";
+import Head from "next/head";
+
 
 function ConfirmRent() {
   const router = useRouter();
@@ -75,6 +77,14 @@ function ConfirmRent() {
 
   return (
     <>
+    <Head>
+        <title>WaRent</title>
+        <meta
+          name="description"
+          content="Globally Distributed Shared warehouse"
+        />
+        <link rel="icon" href="/logo.ico" />
+      </Head>
       <Center style={{ marginTop: "50px" }}>
         <form onSubmit={submitHandler}>
           <FormControl>

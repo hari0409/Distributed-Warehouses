@@ -17,13 +17,13 @@ import {
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
+import Head from "next/head";
 
 function Declare() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, seterrors] = useState(null);
   const [loggedInUser, setLoggedInUser] = useState(null);
   const router = useRouter();
-  const [wDetails, setWDetails] = useState(null);
 
   const [name, setName] = useState("");
   const [area, setArea] = useState(0.5);
@@ -74,7 +74,7 @@ function Declare() {
         address: address,
         availableUnits: area * 100,
         airConditioner: ac,
-        desc:desc
+        desc: desc,
       };
       await axios
         .post(`${process.env.NEXT_PUBLIC_DB_LINK}/api/warehouse/create`, data)
@@ -108,6 +108,14 @@ function Declare() {
   return (
     <>
       <Flex minH={"100vh"} align={"center"} justify={"center"}>
+        <Head>
+          <title>WaRent</title>
+          <meta
+            name="description"
+            content="Globally Distributed Shared warehouse"
+          />
+          <link rel="icon" href="/logo.ico" />
+        </Head>
         <Stack spacing={8} mx={"auto"} maxW={"lg"} py={12} px={6}>
           <Stack align={"center"}>
             <Heading fontSize={"4xl"}>Declare your Land</Heading>
@@ -168,9 +176,7 @@ function Declare() {
                       setTags(e.target.value);
                     }}
                   />
-                  <FormLabel>
-                    Describe your land
-                  </FormLabel>
+                  <FormLabel>Describe your land</FormLabel>
                   <Textarea
                     resize="block"
                     type="text"

@@ -2,7 +2,17 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import {
   Box,
+  Button,
   Center,
+  Divider,
+  Input,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
   Table,
   TableContainer,
   Tbody,
@@ -11,12 +21,17 @@ import {
   Th,
   Thead,
   Tr,
+  useDisclosure,
+  VStack,
 } from "@chakra-ui/react";
 import axios from "axios";
+import Head from "next/head";
 import RenteesTable from "../../Components/RenteesTable/RenteesTable";
 
 function Statistics() {
   const [wData, setWData] = useState(null);
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [text, setText] = useState(true);
 
   const router = useRouter();
 
@@ -52,6 +67,14 @@ function Statistics() {
   }, [router.isReady]);
   return (
     <>
+      <Head>
+        <title>WaRent</title>
+        <meta
+          name="description"
+          content="Globally Distributed Shared warehouse"
+        />
+        <link rel="icon" href="/logo.ico" />
+      </Head>
       <TableContainer my={3}>
         <Table variant="striped" colorScheme="purple">
           <Thead>
@@ -117,6 +140,59 @@ function Statistics() {
         {wData?.rentees.length > 0 && (
           <RenteesTable rentees={wData?.rentees} wid={wData?._id} />
         )}
+        <Divider
+          orientation="horizontal"
+          style={{ height: "10px", color: "yellow" }}
+        />{" "}
+        <Center>
+          <VStack>
+            <Text fontSize="3xl" color="red">
+              Delete your Warehouse
+            </Text>
+            <Button onClick={onOpen} bg="red" m="2">
+              Delete
+            </Button>
+          </VStack>
+        </Center>
+        <Modal isOpen={isOpen} onClose={onClose}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Confirm Deletion:</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              To confirm your deletion please type "{wData?.name}" in the input
+              box
+              <Input
+                onChange={(e) => {
+                  if (e.target.value == wData?.name) {
+                    setText(false);
+                  }
+                }}
+              />
+            </ModalBody>
+            <ModalFooter>
+              <Button colorScheme="blue" mr={3} onClick={onClose}>
+                Close
+              </Button>
+              <Button
+                bg={"red"}
+                onClick={async () => {
+                  try {
+                    await axios.post(
+                      `${process.env.NEXT_PUBLIC_DB_LINK}/api/warehouse/delete/${router.query.wId}`
+                    );
+                    router.replace("/dashboard");
+                  } catch (error) {
+                    alert(error);
+                  }
+                }}
+                isDisabled={text}
+              >
+                Delete
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
       </Box>
     </>
   );

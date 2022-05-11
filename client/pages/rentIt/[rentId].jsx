@@ -1,5 +1,6 @@
-  import { Flex, Spacer } from "@chakra-ui/react";
+import { Flex } from "@chakra-ui/react";
 import axios from "axios";
+import Head from "next/head";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import Simple from "../../Components/Simple/Simple";
@@ -45,7 +46,16 @@ function RentIt() {
   }, [router.isReady]);
 
   return (
+    
     <Flex>
+      <Head>
+        <title>WaRent</title>
+        <meta
+          name="description"
+          content="Globally Distributed Shared warehouse"
+        />
+        <link rel="icon" href="/logo.ico" />
+      </Head>
       <Simple prod={prodDetails} imgLink={imgLink} />
     </Flex>
   );

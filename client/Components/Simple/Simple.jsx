@@ -189,6 +189,16 @@ export default function Simple({ prod, imgLink }) {
                 >
                   Request for Space..
                 </Button>
+                {/* <Button
+                  mx={2}
+                  bg={"#FF8D29"}
+                  onClick={() => {
+                    console.log("Clicked");
+                    router.replace(`chat/${prod?.owner}`)
+                  }}
+                >
+                  Chat Now...
+                </Button> */}
               </Box>
             </Stack>
           </Stack>

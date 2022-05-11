@@ -30,9 +30,8 @@ function Recomended() {
           const locArray = {
             locations: data,
           };
-          console.log(locArray.locations);
           await axios
-            .patch(`${process.env.NEXT_PUBLIC_DB_LINK}/api/warehouse/locations`, locArray.locations)
+            .patch(`${process.env.NEXT_PUBLIC_DB_LINK}/api/warehouse/locations`, locArray)
             .then((res) => {
               console.log(res.data);
               setLocationData(res.data);

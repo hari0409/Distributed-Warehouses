@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { Button, Flex, Heading, Input, Spacer } from "@chakra-ui/react";
+import { Button, Flex, Input } from "@chakra-ui/react";
 import Recomended from "../Components/Recomended/Recomended";
+import Head from "next/head";
+
 
 function RentNow() {
   const [loggedInUser, setLoggedInUser] = useState(null);
@@ -17,7 +19,7 @@ function RentNow() {
       router.replace("/login");
     }
   }, []);
-  
+
   const handleSearch = async (e) => {
     e.preventDefault();
     setSearchQuery(router.query.searchQuery);
@@ -27,6 +29,14 @@ function RentNow() {
   return (
     <>
       <Flex m={5}>
+        <Head>
+          <title>WaRent</title>
+          <meta
+            name="description"
+            content="Globally Distributed Shared warehouse"
+          />
+          <link rel="icon" href="/logo.ico" />
+        </Head>
         <Input
           placeholder="Search based on location..."
           onChange={(e) => {

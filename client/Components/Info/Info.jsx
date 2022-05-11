@@ -6,7 +6,7 @@ function Info({loggedInUser}) {
     <>
       <Flex justifyContent="start">
         <Box>
-          <Text fontSize="lg">Welcome {loggedInUser.name}</Text>
+          <Text fontSize="3xl">Welcome {loggedInUser.name}</Text>
         </Box>
       </Flex>
     </>

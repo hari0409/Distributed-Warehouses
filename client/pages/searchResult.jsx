@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import axios from "axios";
 import { Box, Flex, HStack, Spacer, Text } from "@chakra-ui/react";
+import Head from "next/head";
 import WarehouseElement from "../Components/WarehouseElement/WarehouseElement";
 
 function SearchResult() {
@@ -41,6 +42,14 @@ function SearchResult() {
   return (
     <>
       <Flex justifyContent="start" marginLeft="10px">
+        <Head>
+          <title>WaRent</title>
+          <meta
+            name="description"
+            content="Globally Distributed Shared warehouse"
+          />
+          <link rel="icon" href="/logo.ico" />
+        </Head>
         <Box>
           <Text fontSize="2xl" m={5}>
             Search Result for {search}

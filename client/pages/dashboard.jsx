@@ -1,20 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import {
-  Box,
-  Center,
-  Flex,
-  Heading,
-  Spacer,
-  Text,
-  HStack,
-  Wrap,
-  VStack,
-} from "@chakra-ui/react";
+import { Box, Center, Heading, Spacer, Text, HStack } from "@chakra-ui/react";
 import axios from "axios";
 import Owned from "../Components/Owned/owned";
 import Info from "../Components/Info/Info";
 import Rented from "../Components/Rented/Rented";
+import Head from "next/head";
 
 function DashBoard() {
   const [changed, setChanged] = useState(false);
@@ -46,9 +37,9 @@ function DashBoard() {
   };
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
+    const user = localStorage.getItem("user");
     if (user) {
-      setLoggedInUser(user);
+      setLoggedInUser(JSON.parse(user));
       getLands();
     } else {
       router.replace("/login");
@@ -57,6 +48,14 @@ function DashBoard() {
 
   return (
     <>
+      <Head>
+        <title>WaRent</title>
+        <meta
+          name="description"
+          content="Globally Distributed Shared warehouse"
+        />
+        <link rel="icon" href="/logo.ico" />
+      </Head>
       <Center marginTop="30px">
         <Box>
           <Heading>Dashboard</Heading>
@@ -65,7 +64,7 @@ function DashBoard() {
       <Box marginLeft="10px">
         <Box>
           <Info loggedInUser={loggedInUser} />
-          <Text fontSize="4xl">Your leased Lands & Warehouses:</Text>
+          <Text fontSize="3xl">Your leased Lands & Warehouses:</Text>
           <Spacer my={2} />
           <HStack>
             <Owned
@@ -75,7 +74,7 @@ function DashBoard() {
               length={length}
             />
           </HStack>
-          <Text fontSize="4xl">Your Rented Spaces</Text>
+          <Text fontSize="3xl">Your Rented Spaces</Text>
           <Box>
             <Rented uid={loggedInUser?._id} />
           </Box>
