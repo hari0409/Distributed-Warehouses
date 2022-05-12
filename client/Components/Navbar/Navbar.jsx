@@ -52,7 +52,6 @@ function Navbar() {
     let user = localStorage.getItem("user");
     if (user) {
       user = JSON.parse(user);
-      console.log(user);
       setUserlogged(user);
       setId(user._id);
       if (id) {

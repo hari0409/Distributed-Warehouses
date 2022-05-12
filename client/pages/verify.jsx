@@ -1,7 +1,24 @@
 import React, { useEffect } from "react";
 import { useRouter } from "next/router";
-import { Center, Text } from "@chakra-ui/react";
+import { Center, Text, VStack } from "@chakra-ui/react";
 import axios from "axios";
+import {
+  BallSpinner,
+  BarsSpinner,
+  CircleSpinner,
+  CubeSpinner,
+  DominoSpinner,
+  FillSpinner,
+  FireworkSpinner,
+  FlagSpinner,
+  GridSpinner,
+  GuardSpinner,
+  HeartSpinner,
+  PushSpinner,
+  RotateSpinner,
+  SwishSpinner,
+  WaveSpinner,
+} from "react-spinners-kit";
 
 function verify() {
   const router = useRouter();
@@ -23,12 +40,13 @@ function verify() {
                 `/signup?msg=Verified&token=${router.query.token}&email=${router.query.email}`
               );
             } else {
-              alert(res.data.msg);
+              alert("Error while verification");
               router.replace("/signup")
             }
           })
           .catch((e) => {
-            alert(e.response.data.msg);
+            alert("Error while Verification");
+            router.replace("/signup");
           });
       }
     } catch (error) {
@@ -43,7 +61,12 @@ function verify() {
   return (
     <>
       <Center my={5}>
-        <Text fontSize="6xl">Verifying your Email</Text>
+        <VStack>
+          <Text fontSize="6xl" m="10">
+            Verifying your Email
+          </Text>
+          <GridSpinner size={50} color="#F73D93" loading={true} />
+        </VStack>
       </Center>
     </>
   );

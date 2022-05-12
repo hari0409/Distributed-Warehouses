@@ -65,14 +65,6 @@ const UserSchema = new mongoose.Schema(
     updateFlags: {
       type: [ActivitySchema],
     },
-    verified: {
-      type: Boolean,
-      default: false,
-    },
-    token:{
-      type: String,
-      required: true,
-    }
   },
   {
     timestamps: true,

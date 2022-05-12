@@ -23,10 +23,10 @@ import { useRecoilState } from "recoil";
 import Head from "next/head";
 import { atom } from "recoil";
 
-export const logState=atom({
-    key: "state",
-    default: false,
-})
+export const logState = atom({
+  key: "state",
+  default: false,
+});
 
 function Login() {
   const [errors, seterrors] = useState(null);
@@ -85,7 +85,10 @@ function Login() {
         />
         <link rel="icon" href="/logo.ico" />
       </Head>
-      <Center style={{ marginTop: "50px" }}>
+      <Center style={{marginTop:"40px"}}>
+        <Text fontSize="3xl">Login</Text>
+      </Center>
+      <Center style={{ marginTop: "10px" }}>
         <form onSubmit={handleSubmit}>
           <FormControl isInvalid={errors ? errors.name : null}>
             <FormLabel htmlFor="name">Email</FormLabel>

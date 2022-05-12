@@ -4,6 +4,7 @@ const Warehouse = require("../models/Warehouse");
 const bcrypt = require("bcrypt");
 const sendEmail = require("../lib/email");
 const crypto = require("crypto");
+const Temp = require("../models/Temp");
 
 // Create User-->Done
 router.post("/create", async (req, res, next) => {
@@ -13,16 +14,16 @@ router.post("/create", async (req, res, next) => {
     const salt = await bcrypt.genSaltSync(10);
     const hash = await bcrypt.hashSync(password, salt);
     let user = await User.findOne({ email: data.email });
-    if ((user.token = data.token)) {
+    const temp=await Temp.findOne({email:data.email});
+    if ((temp.token = data.token)) {
       user.password = hash;
-
-      await User.updateOne({ email: data.email }, { $unset: { token: "" } });
       await user.save();
       sendEmail(
         user.email,
         `Welcome to the Warehouse Management System.\nThanks for creating an account with us.\nYour login details are as follows:\nUsername: ${user.email}\nPassword: as-you-have-given`,
         "Welcome to Warehouse Management System"
       );
+      await Temp.deleteOne({ email: data.email });
       res.status(200).json(user);
     } else {
       res.status(400).send("Invalid Token");
@@ -119,7 +120,7 @@ router.post("/login", async (req, res, next) => {
     const user = await User.findOne({
       email: email,
     });
-    if (user && user.verified) {
+    if (user) {
       const match = bcrypt.compareSync(password, user.password);
       if (match) {
         const userLogged = await User.findById(user._id, { password: 0 });
@@ -284,16 +285,21 @@ router.post("/verify", async (req, res, next) => {
   try {
     const { email, name } = req.body;
     const user = await User.findOne({ email: email });
-    if (user && user.verified) {
+    if (user) {
       res.status(401).json({ msg: "User already exists" });
     } else {
+      const tempAct = await Temp.findOne({ email: email });
       const token = await crypto.randomBytes(50).toString("hex");
-      const user = new User({
-        email: email,
-        name: name,
-        token: token,
-      });
-      await user.save();
+      if (tempAct) {
+        await Temp.updateOne({ email: email }, { $set: { token: token } });
+      } else {
+        const user = new Temp({
+          email: email,
+          name: name,
+          token: token,
+        });
+        await user.save();
+      }
       let url = `http://localhost:3000/verify?token=${token}&email=${email}`;
       sendEmail(
         email,
@@ -303,6 +309,7 @@ router.post("/verify", async (req, res, next) => {
       res.status(200).json({ msg: "Success" });
     }
   } catch (error) {
+    console.log(error);
     next(error);
   }
 });
@@ -310,9 +317,13 @@ router.post("/verify", async (req, res, next) => {
 router.post("/verification", async (req, res, next) => {
   try {
     const { email, token } = req.body;
-    let tokenReceived = await User.findOne({ email: email }, { token: 1 });
+    let tokenReceived = await Temp.findOne({ email: email }, { token: 1 });
     if (token === tokenReceived.token) {
-      await User.updateOne({ email: email }, { $set: { verified: true } });
+      const user=new User({
+        email: email,
+        name: await Temp.findOne({ email: email }, { name: 1 }).then(res => res.name),
+      })
+      await user.save();
       res.status(200).json({ msg: "Verified" });
     } else {
       res.status(401).json({ msg: "Invalid Token" });

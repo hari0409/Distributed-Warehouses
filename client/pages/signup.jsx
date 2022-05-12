@@ -92,6 +92,9 @@ function SignUp() {
         />
         <link rel="icon" href="/logo.ico" />
       </Head>
+      <Center style={{marginTop:"40px"}}>
+        <Text fontSize="3xl">Signup</Text>
+      </Center>
       {session1 && (
         <Center style={{ marginTop: "50px" }}>
           <form onSubmit={handleVerify}>
