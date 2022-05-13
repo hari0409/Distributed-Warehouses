@@ -14,9 +14,10 @@ router.post("/create", async (req, res, next) => {
     const salt = await bcrypt.genSaltSync(10);
     const hash = await bcrypt.hashSync(password, salt);
     let user = await User.findOne({ email: data.email });
-    const temp=await Temp.findOne({email:data.email});
+    const temp = await Temp.findOne({ email: data.email });
     if ((temp.token = data.token)) {
       user.password = hash;
+      user.phoneNumber = data.phone;
       await user.save();
       sendEmail(
         user.email,
@@ -123,7 +124,11 @@ router.post("/login", async (req, res, next) => {
     if (user) {
       const match = bcrypt.compareSync(password, user.password);
       if (match) {
-        const userLogged = await User.findById(user._id, { password: 0 });
+        const userLogged = await User.findById(user._id, {
+          password: 0,
+          deleteToken: 0,
+          phoneNumber: 0,
+        });
         res.status(200).json({ status: "Logged In", user: userLogged });
         sendEmail(
           user.email,
@@ -213,7 +218,7 @@ router.put("/update", async (req, res, next) => {
 });
 
 //Update password of user
-router.put("/update/:id", async (req, res, next) => {
+router.post("/update/:id", async (req, res, next) => {
   try {
     const { userId, password } = req.body;
     if (userId == req.params.id) {
@@ -226,7 +231,7 @@ router.put("/update/:id", async (req, res, next) => {
             password: hash,
           },
         });
-        res.status(200).send("Password updated successfully");
+        res.status(200).json({ msg: "Updated" });
       }
     }
   } catch (error) {
@@ -319,14 +324,64 @@ router.post("/verification", async (req, res, next) => {
     const { email, token } = req.body;
     let tokenReceived = await Temp.findOne({ email: email }, { token: 1 });
     if (token === tokenReceived.token) {
-      const user=new User({
+      const user = new User({
         email: email,
-        name: await Temp.findOne({ email: email }, { name: 1 }).then(res => res.name),
-      })
+        name: await Temp.findOne({ email: email }, { name: 1 }).then(
+          (res) => res.name
+        ),
+      });
       await user.save();
       res.status(200).json({ msg: "Verified" });
     } else {
       res.status(401).json({ msg: "Invalid Token" });
+    }
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post("/initdelete/:id", async (req, res, next) => {
+  try {
+    const { uid, email } = req.body;
+    const token = await crypto.randomBytes(50).toString("hex");
+    sendEmail(
+      email,
+      `Please click on the link to confirm the deletion of your account with WareRent. URL: http://localhost:3000/delete?token=${token}&uid=${uid}`,
+      "WareRent-Delete your account"
+    );
+    await User.updateOne({ email: email }, { $set: { deleteToken: token } });
+    const user = await User.find({ email: email });
+    res.status(200).json({ msg: "Success" });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post("/deleteconfirm", async (req, res, next) => {
+  try {
+    const { uid, token } = req.body;
+    const user = await User.findById(uid);
+    if (user.deleteToken === token) {
+      await User.deleteOne({ _id: uid });
+      res.status(200).json({ msg: "Deleted" });
+    } else {
+      res.status(401).json({ msg: "Invalid Token" });
+    }
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post("/updatephone", async (req, res, next) => {
+  try {
+    const { email, phone } = req.body;
+    console.log(email, phone);
+    const user = await User.findOne({ email: email });
+    if (user) {
+      await User.updateOne({ email: email }, { $set: { phoneNumber: phone } });
+      res.status(200).json({ msg: "Updated" });
+    } else {
+      res.status(401).json({ msg: "User not found" });
     }
   } catch (error) {
     next(error);

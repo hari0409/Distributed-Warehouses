@@ -7,7 +7,6 @@ import {
   Th,
   Thead,
   Tr,
-  useDisclosure,
 } from "@chakra-ui/react";
 import axios from "axios";
 import { useRouter } from "next/router";
@@ -17,7 +16,6 @@ function Rented({ uid }) {
   const [rented, setRented] = useState([]);
   const [names, setNames] = useState([]);
   const router=useRouter();
-  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const getRented = async () => {
     await axios

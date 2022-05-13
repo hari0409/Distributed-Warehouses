@@ -1,12 +1,13 @@
-import { useColorMode } from "@chakra-ui/react";
-import { MdDarkMode } from "react-icons/md";
+import { Button, useColorMode } from "@chakra-ui/react";
 
 function Theme() {
   const { colorMode, toggleColorMode } = useColorMode();
   return (
-    <header>
-      <MdDarkMode onClick={toggleColorMode} size={"2.25em"} />
-    </header>
+    <>
+      <Button onClick={toggleColorMode} style={{ background: "#F73D93" }}>
+        Change Theme
+      </Button>
+    </>
   );
 }
 export default Theme;

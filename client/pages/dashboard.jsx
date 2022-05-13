@@ -64,6 +64,8 @@ function DashBoard() {
       <Box marginLeft="10px">
         <Box>
           <Info loggedInUser={loggedInUser} />
+          <Spacer m={4} />
+          <hr style={{ background: "#9772FB"}} />
           <Text fontSize="3xl">Your leased Lands & Warehouses:</Text>
           <Spacer my={2} />
           <HStack>
@@ -74,6 +76,8 @@ function DashBoard() {
               length={length}
             />
           </HStack>
+          <Spacer m={4} />
+          <hr style={{ background: "#9772FB"}} />
           <Text fontSize="3xl">Your Rented Spaces</Text>
           <Box>
             <Rented uid={loggedInUser?._id} />

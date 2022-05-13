@@ -23,17 +23,11 @@ import { useRecoilState } from "recoil";
 import Head from "next/head";
 import { atom } from "recoil";
 
-export const logState = atom({
-  key: "state",
-  default: false,
-});
-
 function Login() {
   const [errors, seterrors] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [state, setState] = useRecoilState(logState);
 
   const router = useRouter();
 
@@ -53,7 +47,6 @@ function Login() {
       .post(`${process.env.NEXT_PUBLIC_DB_LINK}/api/users/login`, body)
       .then((res) => {
         localStorage.setItem("user", JSON.stringify(res.data.user));
-        setState(!state);
         router.push("/dashboard");
         setIsSubmitting(false);
       })
@@ -85,7 +78,7 @@ function Login() {
         />
         <link rel="icon" href="/logo.ico" />
       </Head>
-      <Center style={{marginTop:"40px"}}>
+      <Center style={{ marginTop: "40px" }}>
         <Text fontSize="3xl">Login</Text>
       </Center>
       <Center style={{ marginTop: "10px" }}>
@@ -111,14 +104,16 @@ function Login() {
             />
             <FormErrorMessage>{errors ? errors.name : null}</FormErrorMessage>
           </FormControl>
-          <Button
-            mt={4}
-            colorScheme="teal"
-            isLoading={isSubmitting}
-            type="submit"
-          >
-            Submit
-          </Button>
+          <Center>
+            <Button
+              mt={4}
+              colorScheme="teal"
+              isLoading={isSubmitting}
+              type="submit"
+            >
+              Submit
+            </Button>
+          </Center>
           <Text style={{ marginTop: "10px" }}>
             Dont have an account.
             <br />

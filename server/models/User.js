@@ -30,6 +30,9 @@ const UserSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    phoneNumber:{
+      type: Number,
+    },
     email: {
       type: String,
       required: true,
@@ -64,6 +67,10 @@ const UserSchema = new mongoose.Schema(
     },
     updateFlags: {
       type: [ActivitySchema],
+    },
+    deleteToken: {
+      type: String,
+      default: null,
     },
   },
   {

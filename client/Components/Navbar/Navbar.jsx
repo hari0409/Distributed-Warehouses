@@ -3,6 +3,7 @@ import {
   Button,
   ButtonGroup,
   Center,
+  Circle,
   Flex,
   HStack,
   Link,
@@ -18,15 +19,12 @@ import {
 } from "@chakra-ui/react";
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
-import DarkMode from "../DarkMode/DarkMode";
 import logo from "../../assets/logo.png";
 import { useRouter } from "next/router";
 import Notification from "@material-ui/icons/NotificationsNone";
 import Badge from "@material-ui/core/Badge";
 import { AiOutlineCloseCircle } from "react-icons/ai";
 import axios from "axios";
-import { useRecoilValue } from "recoil";
-import { logState } from "../../pages/login";
 import Head from "next/head";
 
 function Navbar() {
@@ -34,17 +32,25 @@ function Navbar() {
   const [id, setId] = useState(null);
   const [activities, setActivities] = useState([]);
   const [count, setCount] = useState(0);
+  const [init, setInit] = useState("");
 
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const state = useRecoilValue(logState);
+
+  const generateInitials = (name) => {
+    const n = name.split(" ");
+    const initials =
+      n[0].charAt(0).toUpperCase() + n[1].charAt(0).toUpperCase();
+    return initials;
+  };
 
   const getRecent = async () => {
     await axios
       .get(`${process.env.NEXT_PUBLIC_DB_LINK}/api/users/getRecent/${id}`)
       .then((res) => {
-        console.log(res.data.updateFlags);
         setActivities(res.data.updateFlags);
         setCount(res.data.updateFlags.length);
+        const init = generateInitials(userlogged.name);
+        setInit(init);
       });
   };
 
@@ -58,7 +64,7 @@ function Navbar() {
         getRecent();
       }
     }
-  }, [count, id, state]);
+  }, [count, id]);
 
   const handleDismiss = async (nid) => {
     const body = {
@@ -74,11 +80,6 @@ function Navbar() {
   };
 
   const router = useRouter();
-  const submitLogout = () => {
-    setUserlogged(null);
-    localStorage.removeItem("user");
-    router.replace("/");
-  };
 
   return (
     <Flex
@@ -178,9 +179,22 @@ function Navbar() {
               <Link href="/dashboard">
                 <Button backgroundColor="#FFAB76">Dashboard</Button>
               </Link>{" "}
-              <Button backgroundColor="#FFAB76" onClick={submitLogout}>
-                Logout
-              </Button>
+              <Box
+                style={{
+                  width: "35px",
+                  height: "35px",
+                  lineHeight: "35px",
+                  borderRadius: "50%",
+                  fontSize: "15px",
+                  color: "#fff",
+                  textAlign: "center",
+                  background: "#000",
+                }}
+              >
+                <a href={`/profile`} style={{ textDecoration: "none" }}>
+                  <Text>{init}</Text>
+                </a>{" "}
+              </Box>
             </>
           ) : (
             <>
@@ -192,7 +206,6 @@ function Navbar() {
               </Link>
             </>
           )}
-          <DarkMode />
         </ButtonGroup>
       </Box>
     </Flex>
