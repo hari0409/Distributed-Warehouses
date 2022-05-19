@@ -6,6 +6,7 @@ import Owned from "../Components/Owned/owned";
 import Info from "../Components/Info/Info";
 import Rented from "../Components/Rented/Rented";
 import Head from "next/head";
+import Orders from "../Components/Orders/Orders";
 
 function DashBoard() {
   const [changed, setChanged] = useState(false);
@@ -28,9 +29,11 @@ function DashBoard() {
         );
       });
       let result = await Promise.all(data);
-      let resultData = result.map((e) => e.data);
-      setOwnedData(resultData);
-      setLength(resultData.length);
+      let resultData = result.map((e) => e && e.data);
+      if (resultData) {
+        setOwnedData(resultData);
+        setLength(resultData.length);
+      }
     } catch (error) {
       alert("Server unavailable");
     }
@@ -65,7 +68,6 @@ function DashBoard() {
         <Box>
           <Info loggedInUser={loggedInUser} />
           <Spacer m={4} />
-          <hr style={{ background: "#9772FB"}} />
           <Text fontSize="3xl">Your leased Lands & Warehouses:</Text>
           <Spacer my={2} />
           <HStack>
@@ -77,11 +79,16 @@ function DashBoard() {
             />
           </HStack>
           <Spacer m={4} />
-          <hr style={{ background: "#9772FB"}} />
           <Text fontSize="3xl">Your Rented Spaces</Text>
           <Box>
             <Rented uid={loggedInUser?._id} />
           </Box>
+          <Spacer m={4} />
+          <Text fontSize="3xl">Previous Orders</Text>
+          <Box>
+            <Orders id={loggedInUser?._id} />
+          </Box>
+          <Spacer m={"12"} />
         </Box>
       </Box>
     </>

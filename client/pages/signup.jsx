@@ -26,6 +26,7 @@ function SignUp() {
   const [mail, setMail] = useState(false);
   const [enabled, setEnabled] = useState(false);
   const [phone, setPhone] = useState("");
+  const [pin, setPin] = useState("");
 
   const router = useRouter();
 
@@ -33,13 +34,12 @@ function SignUp() {
     try {
       setIsSubmitting(true);
       e.preventDefault();
-      let phoneNum = Number(phone);
-      console.log(phoneNum, typeof phoneNum);
       const body = {
         password: password,
         token: router.query.token,
         email: router.query.email,
-        phone: phoneNum,
+        phone: phone,
+        pin: pin,
       };
       await axios
         .post(`${process.env.NEXT_PUBLIC_DB_LINK}/api/users/create`, body)
@@ -135,7 +135,7 @@ function SignUp() {
                     isLoading={isSubmitting}
                     type="submit"
                   >
-                    Verify Email
+                    {!mail ? "Verify" : "Resend Eamil"}
                   </Button>
                 </Center>
               </FormControl>
@@ -160,9 +160,16 @@ function SignUp() {
                 value={phone}
                 onChange={(e) => {
                   setPhone(e.target.value);
-                  console.log(typeof phone);
                 }}
                 type="number"
+              />
+              <FormLabel>Pin (Used for wallet & cannout be changed)</FormLabel>
+              <Input
+                value={pin}
+                onChange={(e) => {
+                  setPin(e.target.value);
+                }}
+                type="text"
               />
               <FormLabel>Password</FormLabel>
               <Input

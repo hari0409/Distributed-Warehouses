@@ -2,23 +2,7 @@ import React, { useEffect } from "react";
 import { useRouter } from "next/router";
 import { Center, Text, VStack } from "@chakra-ui/react";
 import axios from "axios";
-import {
-  BallSpinner,
-  BarsSpinner,
-  CircleSpinner,
-  CubeSpinner,
-  DominoSpinner,
-  FillSpinner,
-  FireworkSpinner,
-  FlagSpinner,
-  GridSpinner,
-  GuardSpinner,
-  HeartSpinner,
-  PushSpinner,
-  RotateSpinner,
-  SwishSpinner,
-  WaveSpinner,
-} from "react-spinners-kit";
+import { GridSpinner } from "react-spinners-kit";
 
 function verify() {
   const router = useRouter();
@@ -41,7 +25,7 @@ function verify() {
               );
             } else {
               alert("Error while verification");
-              router.replace("/signup")
+              router.replace("/signup");
             }
           })
           .catch((e) => {

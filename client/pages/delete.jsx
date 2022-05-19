@@ -6,6 +6,7 @@ import axios from "axios";
 
 function Delete() {
   const router = useRouter();
+
   const deleteConfirm = async (body) => {
     try {
       await axios
@@ -18,15 +19,24 @@ function Delete() {
             alert("Account deleted successfully.Sorry to see you go. 😓");
             localStorage.removeItem("user");
             router.replace("/signup");
-            router.reload();
           } else {
             alert("Something went wrong. Please try again later.");
+            localStorage.removeItem("user");
+            router.replace("/signup");
           }
+        })
+        .catch((e) => {
+          alert(e.response.data.msg);
+          localStorage.removeItem("user");
+          router.replace("/signup");
         });
     } catch (error) {
-      alert("Server Error");
+      alert(error);
+      localStorage.removeItem("user");
+      router.replace("/signup");
     }
   };
+
   useEffect(() => {
     if (router.isReady) {
       const token = router.query.token;

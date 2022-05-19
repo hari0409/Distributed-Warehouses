@@ -5,19 +5,26 @@ const bcrypt = require("bcrypt");
 const sendEmail = require("../lib/email");
 const crypto = require("crypto");
 const Temp = require("../models/Temp");
+const Order = require("../models/Order");
+const Razorpay = require("razorpay");
+const ImageMap = require("../models/ImageMap");
+const mongoose = require("mongoose");
 
 // Create User-->Done
 router.post("/create", async (req, res, next) => {
   try {
     const data = req.body;
     const password = data.password;
+    let pin = data.pin;
     const salt = await bcrypt.genSaltSync(10);
     const hash = await bcrypt.hashSync(password, salt);
+    let hasedPin = await bcrypt.hashSync(pin, salt);
     let user = await User.findOne({ email: data.email });
     const temp = await Temp.findOne({ email: data.email });
     if ((temp.token = data.token)) {
       user.password = hash;
       user.phoneNumber = data.phone;
+      user.pin = hasedPin;
       await user.save();
       sendEmail(
         user.email,
@@ -30,6 +37,7 @@ router.post("/create", async (req, res, next) => {
       res.status(400).send("Invalid Token");
     }
   } catch (error) {
+    console.log(error);
     next(error);
   }
 });
@@ -68,22 +76,14 @@ router.put("/rent/:id", async (req, res, next) => {
           lid: warehouse._id,
           quantity: required,
           name: warehouse.name,
-          cid: cid,
+          cid: cid.toString(),
+          createdAt: Date.now(),
         };
-        await user.updateOne(
-          {
-            $push: {
-              rented: landObj,
-            },
-            $set: {
-              paid: false,
-              dueAmount: required * warehouse.cost + user.dueAmount,
-            },
+        await user.updateOne({
+          $push: {
+            rented: landObj,
           },
-          {
-            new: true,
-          }
-        );
+        });
         const renteesObj = {
           rid: user._id,
           cid: cid,
@@ -111,6 +111,7 @@ router.put("/rent/:id", async (req, res, next) => {
     }
   } catch (error) {
     next(error);
+    console.log(error);
   }
 });
 
@@ -128,6 +129,9 @@ router.post("/login", async (req, res, next) => {
           password: 0,
           deleteToken: 0,
           phoneNumber: 0,
+          pin: 0,
+          blocked: 0,
+          invalidPinFlags: 0,
         });
         res.status(200).json({ status: "Logged In", user: userLogged });
         sendEmail(
@@ -195,10 +199,6 @@ router.put("/update", async (req, res, next) => {
         $push: {
           rented: landObj,
         },
-        $set: {
-          paid: false,
-          dueAmount: required * warehouse.cost,
-        },
       });
       await warehouse.updateOne({
         $push: {
@@ -214,6 +214,7 @@ router.put("/update", async (req, res, next) => {
     }
   } catch (error) {
     next(error);
+    console.log(error);
   }
 });
 
@@ -245,18 +246,6 @@ router.get("/getAll/:id", async (req, res, next) => {
     const id = req.params.id;
     const user = await User.findById(id);
     let landIds = user.owned;
-    res.status(200).json(landIds);
-  } catch (error) {
-    next(error);
-  }
-});
-
-//Get Rented lands-->Done
-router.get("/getRented/:id", async (req, res, next) => {
-  try {
-    const id = req.params.id;
-    const user = await User.findById(id);
-    let landIds = user.rented;
     res.status(200).json(landIds);
   } catch (error) {
     next(error);
@@ -361,11 +350,47 @@ router.post("/deleteconfirm", async (req, res, next) => {
   try {
     const { uid, token } = req.body;
     const user = await User.findById(uid);
-    if (user.deleteToken === token) {
-      await User.deleteOne({ _id: uid });
-      res.status(200).json({ msg: "Deleted" });
+    if (user) {
+      if (user.deleteToken === token) {
+        let warehouses = await User.findById(uid);
+        warehouses = warehouses.owned;
+        if (warehouses.length > 0) {
+          warehouses.map(async (w) => {
+            const warehouse = await Warehouse.findById(w);
+            const tenents = warehouse.rentees;
+            await ImageMap.deleteOne({
+              warehouseId: w,
+            });
+            tenents.map(async (t) => {
+              const user = await User.findById(t.rid.toString());
+              await user.updateOne({
+                $pull: {
+                  rented: { lid: warehouse._id },
+                },
+                $push: {
+                  updateFlags: {
+                    lid: warehouse.name,
+                    msg: "You have been kicked out of the warehouse",
+                  },
+                },
+              });
+              sendEmail(
+                user.email,
+                `You have been kicked out of the ${warehouse.name} because the warehouse has been deleted from existance`,
+                "You have been kicked out-Warerent"
+              );
+            });
+            await Warehouse.deleteOne({ _id: warehouse._id });
+          });
+          console.log("Warehouses deleted successfully");
+        }
+        await User.deleteOne({ _id: uid });
+        res.status(200).json({ msg: "Deleted" });
+      } else {
+        res.status(401).json({ msg: "Invalid Token" });
+      }
     } else {
-      res.status(401).json({ msg: "Invalid Token" });
+      res.status(401).json({ msg: "Account doesnt exists" });
     }
   } catch (error) {
     next(error);
@@ -383,6 +408,201 @@ router.post("/updatephone", async (req, res, next) => {
     } else {
       res.status(401).json({ msg: "User not found" });
     }
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post("/verifypin", async (req, res, next) => {
+  try {
+    const { email, pin } = req.body;
+    const user = await User.findOne({ email: email });
+    if (user) {
+      const match = bcrypt.compareSync(pin, user.pin);
+      if (match && user.pinAttempts < 3) {
+        if (user.pinAttempts > 0) {
+          user.pinAttempts = 0;
+          await user.save();
+        }
+        res.status(200).json({ msg: "Success" });
+      } else if (user.pinAttempts < 3) {
+        user.pinAttempts += 1;
+        await user.save();
+        res.status(401).json({
+          msg: `Invalid Pin. ${4 - user.pinAttempts} chances remaining.`,
+        });
+      } else {
+        user.blocked = true;
+        await user.save();
+        const token = await crypto.randomBytes(50).toString("hex");
+        user.unblockToken = token;
+        let url = `http://localhost:3000/unblock?token=${token}&email=${email}`;
+        sendEmail(
+          email,
+          `Please click on the link to unblock your account & please change your password if this action was not performed by you.\n URL: ${url}`,
+          "Unblock your account"
+        );
+        await user.save();
+        res.status(401).json({
+          msg: "User Blocked & unblocking link has been sent to the email.",
+        });
+      }
+    } else {
+      res.status(401).json({ msg: "User not found" });
+    }
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+});
+
+router.post("/unblock", async (req, res, next) => {
+  try {
+    const { token, email } = req.body;
+    const user = await User.findOne({ email: email });
+    if (user) {
+      if (user.unblockToken == token) {
+        user.unblockToken = null;
+        user.blocked = false;
+        user.pinAttempts = 0;
+        await user.save();
+        res.status(200).json({ msg: "Unblocked" });
+      } else {
+        res.status(401).json({ msg: "Invalid Token" });
+      }
+    }
+  } catch (error) {
+    next(error);
+  }
+});
+
+const instance = new Razorpay({
+  key_id: "rzp_test_qHmvfhw7g6wviY",
+  key_secret: "LWtJm6SIsK5pichkoH2nmmHt",
+});
+
+router.post("/order", async (req, res, next) => {
+  try {
+    const { amount, uuid } = req.body;
+    const responce = await instance.orders.create({
+      amount: amount.toString(),
+      currency: "INR",
+      receipt: uuid.toString(),
+      payment_capture: 1,
+    });
+    res.status(200).json({ responce });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.patch("/confirmpayment", async (req, res, next) => {
+  try {
+    const { pid, email, amount, lid, quantity } = req.body;
+    const user = await User.findOne({ email: email });
+    if (user) {
+      const order = new Order({
+        amount: amount,
+        paymentId: pid,
+        lid: lid,
+        quantity: quantity,
+        createdAt: Date.now(),
+      });
+      await User.updateOne(
+        { email: email },
+        {
+          $push: {
+            orders: order,
+          },
+        }
+      );
+      res.status(200).json({ msg: "Success" });
+    }
+  } catch (error) {
+    next(error);
+  }
+});
+
+//Length of orders
+router.get("/orderlength/:id", async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const length = await User.aggregate([
+      { $match: { _id: mongoose.Types.ObjectId(id) } },
+      { $unwind: "$orders" },
+      { $group: { _id: "$_id", length: { $sum: 1 } } },
+    ]);
+    res.status(200).json(length);
+  } catch (error) {
+    next(error);
+  }
+});
+
+//Get Orders by pagination
+router.post("/getOrders", async (req, res, next) => {
+  try {
+    console.log(req.body);
+    const orders = await User.findOne(
+      {
+        _id: mongoose.Types.ObjectId(req.body.id),
+      },
+      {
+        orders: {
+          $slice: [req.body.limit * (req.body.pgNo - 1), req.body.limit],
+        },
+      }
+    );
+    res.status(200).json(orders);
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+});
+
+//Get Rented lands-->Done
+router.post("/getRented", async (req, res, next) => {
+  try {
+    const { uid, pgNo, limit } = req.body;
+    const landIds = await User.findOne(
+      {
+        _id: mongoose.Types.ObjectId(uid),
+      },
+      {
+        rented: {
+          $slice: [limit * (pgNo - 1), limit],
+        },
+      }
+    );
+    res.status(200).json(landIds.rented);
+  } catch (error) {
+    next(error);
+  }
+});
+
+//Get length of rented lands-->Done
+router.get("/rentedlength/:id", async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const length = await User.aggregate([
+      { $match: { _id: mongoose.Types.ObjectId(id) } },
+      { $unwind: "$rented" },
+      { $group: { _id: "$_id", length: { $sum: 1 } } },
+    ]);
+    res.status(200).json(length);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get("/rentedall/:id", async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const lands = await User.findOne(
+      { _id: mongoose.Types.ObjectId(id) },
+      { rented: 1, _id: 0 }
+    );
+    console.log(lands);
+    res.status(200).json(lands.rented);
   } catch (error) {
     next(error);
   }

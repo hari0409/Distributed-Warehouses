@@ -13,6 +13,34 @@ const RentedSchema = new mongoose.Schema({
   cid: {
     type: String,
   },
+  uid: {
+    type: String,
+  },
+  createdAt: {
+    type: Date,
+  },
+});
+
+const OrderSchema = new mongoose.Schema({
+  amount: {
+    type: Number,
+    required: true,
+  },
+  lid: {
+    type: String,
+    required: true,
+  },
+  quantity: {
+    type: Number,
+    required: true,
+  },
+  paymentId: {
+    type: String,
+    default: "",
+  },
+  createdAt: {
+    type: Date,
+  },
 });
 
 const ActivitySchema = new mongoose.Schema({
@@ -30,7 +58,7 @@ const UserSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    phoneNumber:{
+    phoneNumber: {
       type: Number,
     },
     email: {
@@ -53,24 +81,31 @@ const UserSchema = new mongoose.Schema(
     rented: {
       type: [RentedSchema],
     },
-    balance: {
-      type: Number,
-      default: 0,
-    },
-    dueAmount: {
-      type: Number,
-      default: 0,
-    },
-    paid: {
-      type: Boolean,
-      default: true,
-    },
     updateFlags: {
       type: [ActivitySchema],
     },
     deleteToken: {
       type: String,
       default: null,
+    },
+    unblockToken: {
+      type: String,
+      default: null,
+    },
+    pin: {
+      type: String,
+      default: null,
+    },
+    pinAttempts: {
+      type: Number,
+      default: 0,
+    },
+    blocked: {
+      type: Boolean,
+      default: true,
+    },
+    orders: {
+      type: [OrderSchema],
     },
   },
   {

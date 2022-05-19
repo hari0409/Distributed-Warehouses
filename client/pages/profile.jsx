@@ -113,7 +113,6 @@ function ProfilePage() {
           if (res.data.msg == "Updated") {
             alert("Phone Number Updated Successfully");
             setPhone("");
-            console.log(userData);
           }
         })
         .catch((e) => {

@@ -3,7 +3,6 @@ import {
   Button,
   ButtonGroup,
   Center,
-  Circle,
   Flex,
   HStack,
   Link,
@@ -38,8 +37,12 @@ function Navbar() {
 
   const generateInitials = (name) => {
     const n = name.split(" ");
-    const initials =
-      n[0].charAt(0).toUpperCase() + n[1].charAt(0).toUpperCase();
+    if (n.length >= 2) {
+      let initials =
+        n[0].charAt(0).toUpperCase() + n[1].charAt(0).toUpperCase();
+      return initials;
+    }
+    let initials = n[0].charAt(0).toUpperCase();
     return initials;
   };
 
@@ -47,10 +50,12 @@ function Navbar() {
     await axios
       .get(`${process.env.NEXT_PUBLIC_DB_LINK}/api/users/getRecent/${id}`)
       .then((res) => {
-        setActivities(res.data.updateFlags);
-        setCount(res.data.updateFlags.length);
-        const init = generateInitials(userlogged.name);
-        setInit(init);
+        if (res.data) {
+          setActivities(res?.data.updateFlags);
+          setCount(res?.data.updateFlags.length);
+          const init = generateInitials(userlogged?.name);
+          setInit(init);
+        }
       });
   };
 
@@ -78,8 +83,6 @@ function Navbar() {
     setActivities(activities.filter((activity) => activity.nid !== nid));
     setCount(count - 1);
   };
-
-  const router = useRouter();
 
   return (
     <Flex

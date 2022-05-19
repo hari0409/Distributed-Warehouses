@@ -3,6 +3,7 @@ const Warehouse = require("../models/Warehouse");
 const User = require("../models/User");
 const ImageMap = require("../models/ImageMap");
 const sendEmail = require("../lib/email");
+const mongoose = require("mongoose");
 
 //Create Warehouse-->Done
 router.post("/create", async (req, res, next) => {
@@ -16,7 +17,7 @@ router.post("/create", async (req, res, next) => {
     sendEmail(
       user.email,
       `Your warehouse has been created in the name of ${warehouse.name} with a cost of ${warehouse.cost}`,
-      "Warehouse Rented"
+      "Warehouse Created"
     );
     res.status(200).json(warehouse);
   } catch (error) {
@@ -64,7 +65,6 @@ router.put("/update/:id", async (req, res, next) => {
 router.put("/kickout", async (rq, res, next) => {
   try {
     const { warehouseId, renterId, quantity, cid } = rq.body;
-    console.log(cid);
     const warehouse = await Warehouse.findById(warehouseId);
     if (warehouse) {
       await warehouse.updateOne({
@@ -164,4 +164,41 @@ router.get("/getname/:id", async (req, res, next) => {
   }
 });
 
+//Get rentees by pagination
+router.post("/getrentees", async (req, res, next) => {
+  try {
+    const { id, pgNo, limit } = req.body;
+    const rentees = await Warehouse.findOne(
+      { _id: mongoose.Types.ObjectId(id) },
+      { rentees: { $slice: [limit * (pgNo - 1), limit] } }
+    );
+    res.status(200).json(rentees.rentees);
+  } catch (error) {}
+});
+
+//Get length of rentees
+router.get("/renteeslength/:id", async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const length = await Warehouse.aggregate([
+      { $match: { _id: mongoose.Types.ObjectId(id) } },
+      { $unwind: "$rentees" },
+      { $group: { _id: "$_id", length: { $sum: 1 } } },
+    ]);
+    res.status(200).json(length);
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+});
+
+router.get("/allrentees/:id", async (req, res, next) => {
+  try {
+    const rentes = await Warehouse.findById(req.params.id, { rentees: 1 });
+    console.log(rentes);
+    res.status(200).json(rentes.rentees);
+  } catch (error) {
+    next(error);
+  }
+});
 module.exports = router;

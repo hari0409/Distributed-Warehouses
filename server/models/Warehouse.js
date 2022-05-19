@@ -8,7 +8,7 @@ const RenteeSchema = new mongoose.Schema({
     type: Number,
   },
   cid:{
-    type:Number,
+    type:String,
   }
 });
 
