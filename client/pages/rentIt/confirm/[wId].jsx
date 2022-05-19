@@ -141,7 +141,6 @@ function ConfirmRent() {
         email: userData?.email,
         pin: pin,
       };
-      console.log(wData);
       if (quantity > 0 && quantity <= wData?.availableUnits) {
         await axios
           .post(`${process.env.NEXT_PUBLIC_DB_LINK}/api/users/verifypin`, body)
@@ -172,7 +171,6 @@ function ConfirmRent() {
         lid: wData?.name,
         quantity: quantity,
       };
-      console.log(body);
       await axios
         .patch(
           `${process.env.NEXT_PUBLIC_DB_LINK}/api/users/confirmpayment`,

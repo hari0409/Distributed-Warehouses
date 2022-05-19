@@ -67,7 +67,6 @@ function Rented({ uid }) {
         .get(`${process.env.NEXT_PUBLIC_DB_LINK}/api/users/rentedall/${uid}`)
         .then((res) => {
           setTotal(res.data);
-          console.log(res.data);
         })
         .catch((e) => {
           alert(e);
@@ -85,7 +84,6 @@ function Rented({ uid }) {
           if (res.data[0].length) {
             setLength(Math.ceil(res?.data[0]?.length / limit));
           }
-          console.log(res.data[0].length);
         })
         .catch(() => {
           setLength(1);

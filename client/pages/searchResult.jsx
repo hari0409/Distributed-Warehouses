@@ -17,14 +17,12 @@ function SearchResult() {
       const data = {
         locations: [val],
       };
-      console.log(data);
       await axios
         .patch(
           `${process.env.NEXT_PUBLIC_DB_LINK}/api/warehouse/locations`,
           data
         )
         .then((res) => {
-          console.log(res.data);
           setResults(res.data);
         })
         .catch((e) => {

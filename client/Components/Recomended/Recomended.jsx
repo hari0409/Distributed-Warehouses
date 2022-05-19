@@ -33,7 +33,6 @@ function Recomended() {
           await axios
             .patch(`${process.env.NEXT_PUBLIC_DB_LINK}/api/warehouse/locations`, locArray)
             .then((res) => {
-              console.log(res.data);
               setLocationData(res.data);
             });
         }

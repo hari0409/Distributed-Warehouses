@@ -9,7 +9,6 @@ const mongoose = require("mongoose");
 router.post("/create", async (req, res, next) => {
   try {
     const data = req.body;
-    console.log(data);
     const warehouse = await new Warehouse(data);
     await warehouse.save();
     const user = await User.findById(data.owner);
@@ -147,7 +146,6 @@ router.post("/delete/:id", async (req, res, next) => {
 router.patch("/locations", async (req, res, next) => {
   try {
     const locations = req.body.locations;
-    console.log(locations);
     const ids = await Warehouse.find({ locationTags: { $in: locations } });
     res.status(200).json(ids);
   } catch (error) {
@@ -187,7 +185,6 @@ router.get("/renteeslength/:id", async (req, res, next) => {
     ]);
     res.status(200).json(length);
   } catch (error) {
-    console.log(error);
     next(error);
   }
 });
@@ -195,7 +192,6 @@ router.get("/renteeslength/:id", async (req, res, next) => {
 router.get("/allrentees/:id", async (req, res, next) => {
   try {
     const rentes = await Warehouse.findById(req.params.id, { rentees: 1 });
-    console.log(rentes);
     res.status(200).json(rentes.rentees);
   } catch (error) {
     next(error);

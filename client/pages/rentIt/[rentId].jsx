@@ -15,10 +15,9 @@ function RentIt() {
       await axios
         .get(`${process.env.NEXT_PUBLIC_DB_LINK}/api/warehouse/${rentId}`)
         .then((res) => {
-          console.log(res.data);
           setProdDetails(res.data);
         })
-        .catch((err) => console.log(err));
+        .catch();
       await axios
         .get(`${process.env.NEXT_PUBLIC_DB_LINK}/api/map/${rentId}`)
         .then(async (res) => {
@@ -46,7 +45,6 @@ function RentIt() {
   }, [router.isReady]);
 
   return (
-    
     <Flex>
       <Head>
         <title>WaRent</title>

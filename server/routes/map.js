@@ -1,26 +1,10 @@
-const ImageMap = require("../models/ImageMap");
+const { createMap, getMap } = require("../Controllers/map");
 const router = require("express").Router();
 
-router.post("/upload", async (req, res, next) => {
-  try {
-    const data = req.body;
-    console.log(data);
-    const map = await new ImageMap(data);
-    await map.save();
-    res.status(200).json(map);
-  } catch (error) {
-    next(error);
-  }
-});
+//Create a map for a location
+router.post("/upload", createMap);
 
-router.get("/:wId", async (req, res, next) => {
-  try {
-    const { wId } = req.params;
-    const map = await ImageMap.findOne({ warehouseId: wId });
-    res.status(200).json(map);
-  } catch (error) {
-    next(error);
-  }
-});
+//Get the respective map
+router.get("/:wId", getMap);
 
 module.exports = router;

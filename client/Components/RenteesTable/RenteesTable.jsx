@@ -114,7 +114,6 @@ function RenteesTable({ wid }) {
         )
         .then((res) => {
           setTotal(res.data);
-          console.log(res.data);
         })
         .catch((e) => {
           alert(e);

@@ -37,7 +37,6 @@ router.post("/create", async (req, res, next) => {
       res.status(400).send("Invalid Token");
     }
   } catch (error) {
-    console.log(error);
     next(error);
   }
 });
@@ -111,7 +110,6 @@ router.put("/rent/:id", async (req, res, next) => {
     }
   } catch (error) {
     next(error);
-    console.log(error);
   }
 });
 
@@ -214,7 +212,6 @@ router.put("/update", async (req, res, next) => {
     }
   } catch (error) {
     next(error);
-    console.log(error);
   }
 });
 
@@ -303,7 +300,6 @@ router.post("/verify", async (req, res, next) => {
       res.status(200).json({ msg: "Success" });
     }
   } catch (error) {
-    console.log(error);
     next(error);
   }
 });
@@ -382,7 +378,6 @@ router.post("/deleteconfirm", async (req, res, next) => {
             });
             await Warehouse.deleteOne({ _id: warehouse._id });
           });
-          console.log("Warehouses deleted successfully");
         }
         await User.deleteOne({ _id: uid });
         res.status(200).json({ msg: "Deleted" });
@@ -400,7 +395,6 @@ router.post("/deleteconfirm", async (req, res, next) => {
 router.post("/updatephone", async (req, res, next) => {
   try {
     const { email, phone } = req.body;
-    console.log(email, phone);
     const user = await User.findOne({ email: email });
     if (user) {
       await User.updateOne({ email: email }, { $set: { phoneNumber: phone } });
@@ -451,7 +445,6 @@ router.post("/verifypin", async (req, res, next) => {
       res.status(401).json({ msg: "User not found" });
     }
   } catch (error) {
-    console.log(error);
     next(error);
   }
 });
@@ -541,7 +534,6 @@ router.get("/orderlength/:id", async (req, res, next) => {
 //Get Orders by pagination
 router.post("/getOrders", async (req, res, next) => {
   try {
-    console.log(req.body);
     const orders = await User.findOne(
       {
         _id: mongoose.Types.ObjectId(req.body.id),
@@ -554,7 +546,6 @@ router.post("/getOrders", async (req, res, next) => {
     );
     res.status(200).json(orders);
   } catch (error) {
-    console.log(error);
     next(error);
   }
 });
@@ -601,7 +592,6 @@ router.get("/rentedall/:id", async (req, res, next) => {
       { _id: mongoose.Types.ObjectId(id) },
       { rented: 1, _id: 0 }
     );
-    console.log(lands);
     res.status(200).json(lands.rented);
   } catch (error) {
     next(error);
